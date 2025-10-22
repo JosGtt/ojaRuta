@@ -1,0 +1,33 @@
+{
+  "name": "oja-ruta-sedeges",
+  "version": "1.0.0",
+  "description": "Sistema de Hojas de Ruta - SEDEGES La Paz",
+  "scripts": {
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "cd frontend && npm run build",
+    "start:backend": "cd backend && npm start",
+    "start": "npm run start:backend"
+  },
+  "keywords": [
+    "sedeges",
+    "hoja-de-ruta",
+    "bolivia",
+    "la-paz",
+    "gobierno",
+    "typescript",
+    "react",
+    "nodejs",
+    "postgresql"
+  ],
+  "author": "SEDEGES La Paz",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

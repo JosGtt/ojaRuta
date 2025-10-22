@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colores de la bandera de La Paz */
+  --color-punzo: #D81E05;
+  --color-esmeralda: #007A3D;
+}

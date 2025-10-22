@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colores oficiales de La Paz */
+  --color-punzo: #D81E05;
+  --color-esmeralda: #007A3D;
+  
+  /* Extensión de colores para TailwindCSS */
+  --color-punzo-50: #FEF2F2;
+  --color-punzo-100: #FEE2E2;
+  --color-punzo-600: #D81E05;
+  --color-punzo-700: #B91C1C;
+  
+  --color-esmeralda-50: #F0FDF4;
+  --color-esmeralda-100: #DCFCE7;
+  --color-esmeralda-600: #007A3D;
+  --color-esmeralda-700: #15803D;
+}
