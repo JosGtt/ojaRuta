@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image';
 import GuardarIcon from '../assets/guardaron';
 import VolverIcon from '../assets/Flecha down';
 import OjoIcon from '../assets/ojo';
@@ -24,16 +24,32 @@ interface FormData {
   // Campos adicionales del documento físico
   fecha_recepcion_1: string;
   destino_1: string;
+  destinos_1: string[];
   instrucciones_adicionales_1: string;
   fecha_recepcion_2: string;
   destino_2: string;
+  destinos_2: string[];
   instrucciones_adicionales_2: string;
   fecha_recepcion_3: string;
   destino_3: string;
+  destinos_3: string[];
   instrucciones_adicionales_3: string;
 }
 
 const destinosOptions = [
+  'Para su conocimiento',
+  'Analizar y emitir opinión',
+  'Dar curso si legalmente es procedente',
+  'Proceder de acuerdo a normas',
+  'Preparar respuesta o informe',
+  'Elaborar Resolución',
+  'Elaborar Contrato',
+  'Concertar reunión',
+  'Asistir a reunión, invitación en mi representación',
+  'Archivar'
+];
+
+const destinosSeccionesAdicionalesOptions = [
   'Para su conocimiento',
   'Preparar respuesta o informe',
   'Analizar y emitir opinión',
@@ -41,8 +57,6 @@ const destinosOptions = [
   'Dar curso si legalmente es procedente',
   'Elaborar Resolución',
   'Elaborar Contrato',
-  'Concertar reunión',
-  'Asistir a reunión, invitación en mi representación',
   'Archivar'
 ];
 
@@ -64,12 +78,15 @@ const NuevaHojaRuta: React.FC = () => {
     instrucciones_adicionales: '',
     fecha_recepcion_1: '',
     destino_1: '',
+    destinos_1: [],
     instrucciones_adicionales_1: '',
     fecha_recepcion_2: '',
     destino_2: '',
+    destinos_2: [],
     instrucciones_adicionales_2: '',
     fecha_recepcion_3: '',
     destino_3: '',
+    destinos_3: [],
     instrucciones_adicionales_3: ''
   });
 
@@ -90,6 +107,19 @@ const NuevaHojaRuta: React.FC = () => {
     }));
   };
 
+  const handleDestinoSectionChange = (destino: string, section: 1 | 2 | 3) => {
+    const fieldName = `destinos_${section}` as keyof FormData;
+    setFormData(prev => {
+      const currentDestinos = prev[fieldName] as string[];
+      return {
+        ...prev,
+        [fieldName]: currentDestinos.includes(destino)
+          ? currentDestinos.filter(d => d !== destino)
+          : [...currentDestinos, destino]
+      };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -102,24 +132,54 @@ const NuevaHojaRuta: React.FC = () => {
     }
   };
 
+  const convertOklchToRgb = (element: HTMLElement) => {
+    const styles = window.getComputedStyle(element);
+    const properties = ['background-color', 'color', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color'];
+    
+    properties.forEach(prop => {
+      const value = styles.getPropertyValue(prop);
+      if (value) {
+        element.style.setProperty(prop, value, 'important');
+      }
+    });
+  };
+
   const handlePrint = async () => {
     if (!printRef.current) return;
     try {
-      setShowPreview(true);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const canvas = await html2canvas(printRef.current, { scale: 2, useCORS: true, allowTaint: true, backgroundColor: '#ffffff' });
-      const pdf = new jsPDF('p', 'mm', [215.9, 355.6]);
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 215.9;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
-      const filename = `hoja-ruta-${formData.numero_hr || timestamp}.pdf`;
-      pdf.save(filename);
-      toast.success('PDF generado exitosamente');
+      if (!showPreview) {
+        setShowPreview(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      const element = printRef.current;
+      const dataUrl = await domtoimage.toPng(element);
+      const img = new window.Image();
+      img.src = dataUrl;
+      img.onload = () => {
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = (img.height * imgWidth) / img.width;
+        let heightLeft = imgHeight;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        let position = 0;
+        pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+        const filename = `hoja-ruta-${formData.numero_hr || timestamp}.pdf`;
+        pdf.save(filename);
+        toast.success('PDF generado exitosamente');
+      };
     } catch (error) {
       console.error('Error al generar PDF:', error);
-      toast.error('Error al generar el PDF');
+      toast.error('Error al generar el PDF: ' + error);
     }
   };
 
@@ -195,6 +255,33 @@ const NuevaHojaRuta: React.FC = () => {
                 <textarea name="destino_principal" value={formData.destino_principal} onChange={handleInputChange} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Escriba el destino principal..." />
               </div>
 
+              {/* Sección principal de opciones de destino e instrucciones */}
+              <div className="mt-6">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Columna izquierda: Opciones de destino principales */}
+                    <div className="border-r border-gray-300 pr-4">
+                      <div className="space-y-2">
+                        {destinosOptions.map((destino) => (
+                          <label key={destino} className="flex items-center">
+                            <input type="checkbox" checked={formData.destinos.includes(destino)} onChange={() => handleDestinoChange(destino)} className="mr-2" />
+                            <span className="text-sm">{destino}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Columna derecha: Instrucciones adicionales principales */}
+                    <div className="pl-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Instrucciones Adicionales</label>
+                        <textarea name="instrucciones_adicionales" value={formData.instrucciones_adicionales} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Escriba las instrucciones adicionales..." />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Secciones adicionales con opciones de destino */}
               <div className="mt-6 space-y-6">
                 <h3 className="text-lg font-medium">Secciones Adicionales</h3>
@@ -205,20 +292,35 @@ const NuevaHojaRuta: React.FC = () => {
                     {/* Columna izquierda: Opciones de destino 1 */}
                     <div className="border-r border-gray-300 pr-4">
                       <div className="space-y-2">
-                        {destinosOptions.map((destino) => (
+                        {destinosSeccionesAdicionalesOptions.map((destino) => (
                           <label key={`destino1_${destino}`} className="flex items-center">
-                            <input type="checkbox" name={`destino1_${destino}`} className="mr-2" />
+                            <input 
+                              type="checkbox" 
+                              checked={formData.destinos_1.includes(destino)}
+                              onChange={() => handleDestinoSectionChange(destino, 1)}
+                              className="mr-2" 
+                            />
                             <span className="text-sm">{destino}</span>
                           </label>
                         ))}
                       </div>
                     </div>
                     
-                    {/* Columna derecha: Instrucciones Adicionales 1 */}
+                    {/* Columna derecha: Campos de la sección 1 */}
                     <div className="pl-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Fecha de Recepción 1</label>
+                          <input type="date" name="fecha_recepcion_1" value={formData.fecha_recepcion_1} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Destino 1</label>
+                          <input type="text" name="destino_1" value={formData.destino_1} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 1</label>
-                        <textarea name="instrucciones_adicionales_1" value={formData.instrucciones_adicionales_1} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_1" value={formData.instrucciones_adicionales_1} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                       </div>
                     </div>
                   </div>
@@ -230,20 +332,35 @@ const NuevaHojaRuta: React.FC = () => {
                     {/* Columna izquierda: Opciones de destino 2 */}
                     <div className="border-r border-gray-300 pr-4">
                       <div className="space-y-2">
-                        {destinosOptions.map((destino) => (
+                        {destinosSeccionesAdicionalesOptions.map((destino) => (
                           <label key={`destino2_${destino}`} className="flex items-center">
-                            <input type="checkbox" name={`destino2_${destino}`} className="mr-2" />
+                            <input 
+                              type="checkbox" 
+                              checked={formData.destinos_2.includes(destino)}
+                              onChange={() => handleDestinoSectionChange(destino, 2)}
+                              className="mr-2" 
+                            />
                             <span className="text-sm">{destino}</span>
                           </label>
                         ))}
                       </div>
                     </div>
                     
-                    {/* Columna derecha: Instrucciones Adicionales 2 */}
+                    {/* Columna derecha: Campos de la sección 2 */}
                     <div className="pl-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Fecha de Recepción 2</label>
+                          <input type="date" name="fecha_recepcion_2" value={formData.fecha_recepcion_2} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Destino 2</label>
+                          <input type="text" name="destino_2" value={formData.destino_2} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 2</label>
-                        <textarea name="instrucciones_adicionales_2" value={formData.instrucciones_adicionales_2} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_2" value={formData.instrucciones_adicionales_2} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                       </div>
                     </div>
                   </div>
@@ -255,20 +372,35 @@ const NuevaHojaRuta: React.FC = () => {
                     {/* Columna izquierda: Opciones de destino 3 */}
                     <div className="border-r border-gray-300 pr-4">
                       <div className="space-y-2">
-                        {destinosOptions.map((destino) => (
+                        {destinosSeccionesAdicionalesOptions.map((destino) => (
                           <label key={`destino3_${destino}`} className="flex items-center">
-                            <input type="checkbox" name={`destino3_${destino}`} className="mr-2" />
+                            <input 
+                              type="checkbox" 
+                              checked={formData.destinos_3.includes(destino)}
+                              onChange={() => handleDestinoSectionChange(destino, 3)}
+                              className="mr-2" 
+                            />
                             <span className="text-sm">{destino}</span>
                           </label>
                         ))}
                       </div>
                     </div>
                     
-                    {/* Columna derecha: Instrucciones Adicionales 3 */}
+                    {/* Columna derecha: Campos de la sección 3 */}
                     <div className="pl-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Fecha de Recepción 3</label>
+                          <input type="date" name="fecha_recepcion_3" value={formData.fecha_recepcion_3} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-2">Destino 3</label>
+                          <input type="text" name="destino_3" value={formData.destino_3} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                      </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 3</label>
-                        <textarea name="instrucciones_adicionales_3" value={formData.instrucciones_adicionales_3} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_3" value={formData.instrucciones_adicionales_3} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                       </div>
                     </div>
                   </div>
@@ -293,7 +425,11 @@ const NuevaHojaRuta: React.FC = () => {
             </form>
           </div>
         ) : (
-          <div className="bg-white shadow-lg" ref={printRef}>
+          <div
+            className="bg-white shadow-lg"
+            ref={printRef}
+            style={{ background: '#fff', color: '#222' }}
+          >
             <div className="p-6">
               <div className="text-center mb-4">
                 <div className="flex items-start justify-between mb-2">
@@ -401,10 +537,10 @@ const NuevaHojaRuta: React.FC = () => {
                   <div className="border-r border-black p-1">
                     <div className="space-y-1 text-xs">
                       <div><input type="checkbox" checked={formData.destinos.includes('Para su conocimiento')} readOnly className="mr-1" />Para su conocimiento</div>
-                      <div><input type="checkbox" checked={formData.destinos.includes('Preparar respuesta o informe')} readOnly className="mr-1" />Preparar respuesta o informe</div>
                       <div><input type="checkbox" checked={formData.destinos.includes('Analizar y emitir opinión')} readOnly className="mr-1" />Analizar y emitir opinión</div>
-                      <div><input type="checkbox" checked={formData.destinos.includes('Procesar de acuerdo a normas')} readOnly className="mr-1" />Procesar de acuerdo a normas</div>
                       <div><input type="checkbox" checked={formData.destinos.includes('Dar curso si legalmente es procedente')} readOnly className="mr-1" />Dar curso si legalmente es procedente</div>
+                      <div><input type="checkbox" checked={formData.destinos.includes('Proceder de acuerdo a normas')} readOnly className="mr-1" />Proceder de acuerdo a normas</div>
+                      <div><input type="checkbox" checked={formData.destinos.includes('Preparar respuesta o informe')} readOnly className="mr-1" />Preparar respuesta o informe</div>
                       <div><input type="checkbox" checked={formData.destinos.includes('Elaborar Resolución')} readOnly className="mr-1" />Elaborar Resolución</div>
                       <div><input type="checkbox" checked={formData.destinos.includes('Elaborar Contrato')} readOnly className="mr-1" />Elaborar Contrato</div>
                       <div><input type="checkbox" checked={formData.destinos.includes('Concertar reunión')} readOnly className="mr-1" />Concertar reunión</div>
@@ -432,9 +568,9 @@ const NuevaHojaRuta: React.FC = () => {
 
               {/* FECHA DE RECEPCIÓN y DESTINO (repetido 3 veces como en el documento) */}
               {[
-                { fecha: formData.fecha_recepcion_1, destino: formData.destino_1, instrucciones: formData.instrucciones_adicionales_1 },
-                { fecha: formData.fecha_recepcion_2, destino: formData.destino_2, instrucciones: formData.instrucciones_adicionales_2 },
-                { fecha: formData.fecha_recepcion_3, destino: formData.destino_3, instrucciones: formData.instrucciones_adicionales_3 }
+                { fecha: formData.fecha_recepcion_1, destino: formData.destino_1, instrucciones: formData.instrucciones_adicionales_1, destinos: formData.destinos_1 },
+                { fecha: formData.fecha_recepcion_2, destino: formData.destino_2, instrucciones: formData.instrucciones_adicionales_2, destinos: formData.destinos_2 },
+                { fecha: formData.fecha_recepcion_3, destino: formData.destino_3, instrucciones: formData.instrucciones_adicionales_3, destinos: formData.destinos_3 }
               ].map((seccion, index) => (
                 <div key={index + 1}>
                   <div className="border border-black border-t-0 p-1">
@@ -448,14 +584,14 @@ const NuevaHojaRuta: React.FC = () => {
                     <div className="grid grid-cols-2">
                       <div className="border-r border-black p-1">
                         <div className="space-y-1 text-xs">
-                          <div><input type="checkbox" readOnly className="mr-1" />Para su conocimiento</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Analizar y emitir opinión</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Dar curso se legalmente es procedente</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Proceder de acuerdo a normas</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Preparar respuesta o informe</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Elaborar Resolución</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Elaborar Contrato</div>
-                          <div><input type="checkbox" readOnly className="mr-1" />Archivar</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Para su conocimiento')} readOnly className="mr-1" />Para su conocimiento</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Preparar respuesta o informe')} readOnly className="mr-1" />Preparar respuesta o informe</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Analizar y emitir opinión')} readOnly className="mr-1" />Analizar y emitir opinión</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Procesar de acuerdo a normas')} readOnly className="mr-1" />Procesar de acuerdo a normas</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Dar curso si legalmente es procedente')} readOnly className="mr-1" />Dar curso si legalmente es procedente</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Elaborar Resolución')} readOnly className="mr-1" />Elaborar Resolución</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Elaborar Contrato')} readOnly className="mr-1" />Elaborar Contrato</div>
+                          <div><input type="checkbox" checked={seccion.destinos.includes('Archivar')} readOnly className="mr-1" />Archivar</div>
                         </div>
                       </div>
                       
