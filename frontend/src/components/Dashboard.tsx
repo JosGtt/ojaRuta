@@ -1,4 +1,5 @@
 import React from 'react';
+import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -61,114 +62,70 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            {/* Logo y título */}
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-linear-to-br from-yellow-400 to-red-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-xl font-bold text-white">S</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">SEDEGES La Paz</h1>
-                <p className="text-sm text-gray-500">Sistema de Hojas de Ruta</p>
-              </div>
-            </div>
-
-            {/* Usuario y logout */}
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <UsuarioIcon width={20} height={20} fill="#6B7280" />
-                <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{user?.nombre_completo}</p>
-                  <p className="text-xs text-gray-500 capitalize">{user?.rol}</p>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                <CerrarIcon width={16} height={16} fill="#6B7280" className="mr-1" />
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
+    <DashboardLayout user={user} onLogout={handleLogout}>
+      <div className="w-full max-w-7xl px-4 py-6 sm:px-0 mx-auto">
+        {/* Bienvenida */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Bienvenido, {user?.nombre_completo}
+          </h2>
+          <p className="text-gray-600">
+            Sistema de Control y Seguimiento de Hojas de Ruta - SEDEGES La Paz
+          </p>
         </div>
-      </header>
-
-      {/* Contenido principal */}
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          
-          {/* Bienvenida */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Bienvenido, {user?.nombre_completo}
-            </h2>
-            <p className="text-gray-600">
-              Sistema de Control y Seguimiento de Hojas de Ruta - SEDEGES La Paz
-            </p>
-          </div>
-
-          {/* Estadísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <div key={index} className={`${stat.bg} rounded-lg p-6 border`}>
-                <div className="flex items-center">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                    <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-                  </div>
+        {/* Estadísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <div key={index} className={`${stat.bg} rounded-lg p-6 border`}>
+              <div className="flex items-center">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
+                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Menú principal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {menuItems.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => navigate(item.path)}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
-              >
-                <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-linear-to-r ${item.color} mb-4 group-hover:scale-110 transition-transform`}>
-                  <item.icon width={24} height={24} fill="white" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.description}</p>
-              </button>
-            ))}
-          </div>
-
-          {/* Sección de información institucional */}
-          <div className="mt-8 bg-linear-to-r from-blue-600 to-green-600 rounded-xl p-8 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-bold mb-2">
-                  Servicio Departamental de Gestión Social
-                </h3>
-                <p className="text-blue-100 mb-4">
-                  Promoviendo el desarrollo social integral en el departamento de La Paz
-                </p>
-                <div className="flex items-center text-sm text-blue-100">
-                  <DashboardIcon width={16} height={16} fill="currentColor" className="mr-2" />
-                  Sistema en línea - Versión 1.0
-                </div>
+            </div>
+          ))}
+        </div>
+        {/* Menú principal */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {menuItems.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => navigate(item.path)}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
+            >
+              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-linear-to-r ${item.color} mb-4 group-hover:scale-110 transition-transform`}>
+                <item.icon width={24} height={24} fill="white" />
               </div>
-              <div className="hidden md:block">
-                <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-bold">SEDEGES</span>
-                </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
+              <p className="text-sm text-gray-600">{item.description}</p>
+            </button>
+          ))}
+        </div>
+        {/* Sección de información institucional */}
+        <div className="mt-8 bg-linear-to-r from-blue-600 to-green-600 rounded-xl p-8 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold mb-2">
+                Servicio Departamental de Gestión Social
+              </h3>
+              <p className="text-blue-100 mb-4">
+                Promoviendo el desarrollo social integral en el departamento de La Paz
+              </p>
+              <div className="flex items-center text-sm text-blue-100">
+                <DashboardIcon width={16} height={16} fill="currentColor" className="mr-2" />
+                Sistema en línea - Versión 1.0
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center">
+                <span className="text-3xl font-bold">SEDEGES</span>
               </div>
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 

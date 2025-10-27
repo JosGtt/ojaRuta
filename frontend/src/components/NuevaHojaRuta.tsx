@@ -1,4 +1,6 @@
 import React, { useState, useRef } from 'react';
+import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
@@ -62,6 +64,7 @@ const destinosSeccionesAdicionalesOptions = [
 
 const NuevaHojaRuta: React.FC = () => {
   const navigate = useNavigate();
+  const { token, user } = useAuth();
   const printRef = useRef<HTMLDivElement>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -122,10 +125,26 @@ const NuevaHojaRuta: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token || !user) {
+      toast.error('No hay sesión activa. Inicie sesión nuevamente.');
+      navigate('/login');
+      return;
+    }
     try {
-      console.log('Datos del formulario:', formData);
+      // Enviar todos los campos del formulario para que se guarden en detalles (JSONB)
+      const payload = {
+        ...formData,
+        estado: 'pendiente',
+        observaciones: formData.instrucciones_adicionales,
+        usuario_creador_id: user.id
+      };
+      await axios.post('http://localhost:3001/api/hojas-ruta', payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       toast.success('Hoja de ruta guardada exitosamente');
-      navigate('/dashboard');
+      navigate('/registros');
     } catch (error) {
       console.error('Error al guardar:', error);
       toast.error('Error al guardar la hoja de ruta');

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import hojasRutaRoutes from './routes/hojasRuta';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Rutas
 app.use('/api/auth', authRoutes);
+app.use('/api/hojas-ruta', hojasRutaRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

@@ -6,6 +6,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import RegistrosPage from '../pages/RegistrosPage';
 import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
+import DashboardHojaRuta from '../components/DashboardHojaRuta';
 
 const AppRoutes = () => {
   return (
@@ -42,6 +43,14 @@ const AppRoutes = () => {
             <RegistrosPage />
           </ProtectedRoute>
         } 
+      />
+      <Route
+        path="/hoja/:id"
+        element={
+          <ProtectedRoute>
+            <DashboardHojaRuta />
+          </ProtectedRoute>
+        }
       />
       
       <Route 

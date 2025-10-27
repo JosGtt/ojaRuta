@@ -44,10 +44,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [token]);
 
-  // Verificar token al cargar la app
+  // Verificar token al cargar la app (sessionStorage)
   useEffect(() => {
-    const savedToken = localStorage.getItem('sedeges_token');
-    const savedUser = localStorage.getItem('sedeges_user');
+    const savedToken = sessionStorage.getItem('sedeges_token');
+    const savedUser = sessionStorage.getItem('sedeges_user');
     
     if (savedToken && savedUser) {
       setToken(savedToken);
@@ -68,9 +68,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setToken(newToken);
       setUser(userData);
       
-      // Guardar en localStorage
-      localStorage.setItem('sedeges_token', newToken);
-      localStorage.setItem('sedeges_user', JSON.stringify(userData));
+      // Guardar en sessionStorage
+      sessionStorage.setItem('sedeges_token', newToken);
+      sessionStorage.setItem('sedeges_user', JSON.stringify(userData));
       
       return true;
     } catch (error) {
@@ -82,8 +82,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('sedeges_token');
-    localStorage.removeItem('sedeges_user');
+    sessionStorage.removeItem('sedeges_token');
+    sessionStorage.removeItem('sedeges_user');
   };
 
   const value = {

@@ -52,6 +52,7 @@ CREATE TABLE hojas_ruta (
     instrucciones_adicionales TEXT,
     usuario_creador_id INTEGER REFERENCES usuarios(id),
     estado VARCHAR(20) DEFAULT 'activa' CHECK (estado IN ('activa', 'finalizada', 'cancelada')),
+    detalles JSONB, -- Aquí se guardan todos los datos extra del formulario
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
