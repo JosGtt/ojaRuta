@@ -1,132 +1,144 @@
-import React from 'react';
+
+import React, { useEffect, useState } from 'react';
 import DashboardLayout from './DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-
-// Importar los SVG
-import DashboardIcon from '../assets/dashboard';
-import CerrarIcon from '../assets/cerrar';
-import UsuarioIcon from '../assets/usario';
+import axios from 'axios';
+import LupayIcon from '../assets/lupay';
 import HistorialIcon from '../assets/historial';
-import RegistrosIcon from '../assets/registros';
-import NotificationIcon from '../assets/notification';
-import AñadirIcon from '../assets/añadir';
+
+
+interface HojaRuta {
+  id: number;
+  numero_hr: string;
+  referencia: string;
+  procedencia: string;
+  fecha_documento?: string;
+  fecha_ingreso: string;
+  cite?: string;
+  numero_fojas?: number;
+  prioridad: string;
+  estado: string;
+}
 
 const Dashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [hojas, setHojas] = useState<HojaRuta[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogout = () => {
     logout();
-    toast.info('Sesión cerrada correctamente');
     navigate('/login');
   };
 
-  const menuItems = [
-    {
-      title: 'Nueva Hoja de Ruta',
-      description: 'Crear una nueva hoja de ruta',
-      icon: AñadirIcon,
-      color: 'from-green-500 to-green-600',
-      path: '/nueva-hoja'
-    },
-    {
-      title: 'Registros',
-      description: 'Ver todas las hojas de ruta',
-      icon: RegistrosIcon,
-      color: 'from-blue-500 to-blue-600',
-      path: '/registros'
-    },
-    {
-      title: 'Historial',
-      description: 'Seguimiento de documentos',
-      icon: HistorialIcon,
-      color: 'from-purple-500 to-purple-600',
-      path: '/historial'
-    },
-    {
-      title: 'Notificaciones',
-      description: 'Alertas del sistema',
-      icon: NotificationIcon,
-      color: 'from-yellow-500 to-yellow-600',
-      path: '/notificaciones'
+  const fetchHojas = async (search = '') => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await axios.get('http://localhost:3001/api/hojas-ruta', {
+        params: search ? { query: search } : {},
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHojas(res.data);
+    } catch (err) {
+      setError('Error al cargar hojas de ruta');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const stats = [
-    { title: 'Hojas de Ruta Activas', value: '24', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Pendientes de Revisión', value: '8', color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    { title: 'Finalizadas Hoy', value: '12', color: 'text-green-600', bg: 'bg-green-50' },
-    { title: 'En Proceso', value: '16', color: 'text-purple-600', bg: 'bg-purple-50' }
-  ];
+  useEffect(() => {
+    fetchHojas();
+    // eslint-disable-next-line
+  }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchHojas(query);
+  };
 
   return (
     <DashboardLayout user={user} onLogout={handleLogout}>
-      <div className="w-full max-w-7xl px-4 py-6 sm:px-0 mx-auto">
-        {/* Bienvenida */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Bienvenido, {user?.nombre_completo}
-          </h2>
-          <p className="text-gray-600">
-            Sistema de Control y Seguimiento de Hojas de Ruta - SEDEGES La Paz
-          </p>
-        </div>
-        {/* Estadísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <div key={index} className={`${stat.bg} rounded-lg p-6 border`}>
-              <div className="flex items-center">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                  <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Menú principal */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {menuItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => navigate(item.path)}
-              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 p-6 border hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 group"
-            >
-              <div className={`inline-flex items-center justify-center w-12 h-12 rounded-lg bg-linear-to-r ${item.color} mb-4 group-hover:scale-110 transition-transform`}>
-                <item.icon width={24} height={24} fill="white" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-sm text-gray-600">{item.description}</p>
+      <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center bg-gradient-to-br from-[#e8f5e9] via-[#fff] to-[#ffeaea] py-8 px-2">
+        <div className="w-full max-w-7xl bg-white/90 rounded-3xl shadow-2xl p-14 flex flex-col items-center border-4 border-black/20">
+          <div className="flex items-center mb-6">
+            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#006837]/20 mr-7 shadow-2xl">
+              <HistorialIcon width={44} height={44} className="text-[#006837]" />
+            </span>
+            <h1 className="text-5xl font-black text-[#006837] tracking-tight drop-shadow-xl">Registros de Hojas de Ruta</h1>
+          </div>
+          <form onSubmit={handleSearch} className="flex w-full max-w-xl items-center gap-2 mb-8">
+            <input
+              type="text"
+              placeholder="Buscar por número o referencia..."
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              className="flex-1 px-8 py-5 border-2 border-[#006837] rounded-2xl bg-[#f9f9f9] focus:outline-none focus:ring-2 focus:ring-[#b71c1c] text-2xl shadow-lg font-semibold"
+            />
+            <button type="submit" className="bg-[#b71c1c] hover:bg-black text-white px-12 py-5 rounded-2xl flex items-center font-black shadow-xl text-2xl transition-all">
+              <LupayIcon width={28} height={28} className="mr-3" /> Buscar
             </button>
-          ))}
-        </div>
-        {/* Sección de información institucional */}
-        <div className="mt-8 bg-linear-to-r from-blue-600 to-green-600 rounded-xl p-8 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold mb-2">
-                Servicio Departamental de Gestión Social
-              </h3>
-              <p className="text-blue-100 mb-4">
-                Promoviendo el desarrollo social integral en el departamento de La Paz
-              </p>
-              <div className="flex items-center text-sm text-blue-100">
-                <DashboardIcon width={16} height={16} fill="currentColor" className="mr-2" />
-                Sistema en línea - Versión 1.0
+          </form>
+          <div className="w-full">
+            {loading ? (
+              <div className="text-gray-500 text-center py-8 text-lg">Cargando...</div>
+            ) : error ? (
+              <div className="text-red-500 text-center py-8 text-lg">{error}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-2xl border-separate border-spacing-0 rounded-3xl overflow-hidden shadow-2xl">
+                  <thead>
+                    <tr className="bg-[#006837] text-white">
+                      <th className="p-6 border-b-4 font-black tracking-wide">N° H.R.</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Referencia</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Procedencia</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Prioridad</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Estado</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Fecha Ingreso</th>
+                      <th className="p-6 border-b-4 font-black tracking-wide">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hojas.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="text-gray-500 text-center py-16 text-2xl">No se encontraron hojas de ruta.</td>
+                      </tr>
+                    ) : (
+                      hojas.map(hr => (
+                        <tr key={hr.id} className="hover:bg-[#b71c1c]/10 transition cursor-pointer">
+                          <td className="p-6 border-b font-mono text-center">{hr.numero_hr}</td>
+                          <td className="p-6 border-b text-center">{hr.referencia}</td>
+                          <td className="p-6 border-b text-center">{hr.procedencia}</td>
+                          <td className="p-6 border-b text-center capitalize">
+                            <span className={`px-6 py-3 rounded-full text-xl font-black ${hr.prioridad === 'Urgente' ? 'bg-[#b71c1c]/10 text-[#b71c1c]' : 'bg-[#006837]/10 text-[#006837]'}`}>{hr.prioridad}</span>
+                          </td>
+                          <td className="p-6 border-b text-center capitalize">
+                            <span className={`px-6 py-3 rounded-full text-xl font-black ${hr.estado === 'Pendiente' ? 'bg-black/10 text-black' : 'bg-[#006837]/10 text-[#006837]'}`}>{hr.estado}</span>
+                          </td>
+                          <td className="p-6 border-b text-center">{hr.fecha_ingreso?.slice(0,10)}</td>
+                          <td className="p-6 border-b text-center">
+                            <button
+                              onClick={() => navigate(`/hoja/${hr.id}`)}
+                              className="bg-[#006837] hover:bg-[#b71c1c] text-white px-8 py-4 rounded-xl text-xl font-black shadow-xl transition-all"
+                            >
+                              Ver Detalle
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </div>
-            <div className="hidden md:block">
-              <div className="w-24 h-24 bg-white/10 rounded-full flex items-center justify-center">
-                <span className="text-3xl font-bold">SEDEGES</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
     </DashboardLayout>
   );
-};
+}
 
 export default Dashboard;
