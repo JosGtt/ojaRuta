@@ -14,7 +14,7 @@ const SedegesLogo: React.FC<SedegesLogoProps> = ({ className = "", width = 100, 
       alt="SEDEGES La Paz"
       width={width}
       height={height}
-      className="object-contain"
+      className="object-contain bg-transparent"
     />
   </div>
 );

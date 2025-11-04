@@ -6,12 +6,12 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   fill?: string;
 }
 
-const AñadirLogo: React.FC<IconProps> = ({ width = 24, height = 24, fill = "#000", ...props }) => (
+const AñadirLogo: React.FC<IconProps> = ({ width = 24, height = 24, fill = "#fff", ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={width}
     height={height}
-    fill={fill}
+      fill={fill}
     viewBox="0 0 24 24"
     {...props}
   >

@@ -1,7 +1,90 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colores de la bandera de La Paz */
+  /* Colores oficiales de La Paz */
   --color-punzo: #D81E05;
   --color-esmeralda: #007A3D;
+  
+  /* Extensión de colores para TailwindCSS */
+  --color-punzo-50: #FEF2F2;
+  --color-punzo-100: #FEE2E2;
+  --color-punzo-600: #D81E05;
+  --color-punzo-700: #B91C1C;
+  
+  --color-esmeralda-50: #F0FDF4;
+  --color-esmeralda-100: #DCFCE7;
+  --color-esmeralda-600: #007A3D;
+  --color-esmeralda-700: #15803D;
+    --color-vino: #7B1E3A;
+  --color-vino-oscuro: #4A1023;
+  --color-vino-claro: #A23E5C;
+  --color-fondo-claro: #F8F6F8;
+  --color-fondo-oscuro: #2C1A24;
+  --color-blanco: #FFFFFF;
+  --color-gris-claro: #F3F3F3;
+  --color-gris-medio: #BDBDBD;
+  --color-gris-oscuro: #424242;
+  --color-verde: #006837;
+  --color-amarillo: #FFC107;
+  --color-rojo: #B71C1C;
+  --color-azul: #1976D2;
 }
+/* Theme helpers and utility classes for the dashboard */
+
+:root{
+  --app-gradient-start: linear-gradient(90deg, var(--color-esmeralda-600) 0%, var(--color-vino) 100%);
+}
+
+/* Global background: usar un solo color vino uniforme en toda la app */
+body, #root {
+  background: var(--color-vino);
+  color: var(--color-blanco);
+  min-height: 100vh;
+}
+
+.app-bg {
+  background: transparent;
+}
+
+/* Force uniform background and remove shadows/borders on top-level layout elements */
+header, aside, main, footer, .app-root {
+  background: var(--color-vino) !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Make search input visually identical to page background unless explicitly styled */
+.search-unified {
+  background: var(--color-vino) !important;
+  border: none !important;
+}
+
+.card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.card-soft {
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.muted {
+  color: var(--color-gris-medio);
+}
+
+/* small fade-in utility used by user menu */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeInUp 180ms ease-out both;
+}
+
+/* responsive tweaks for sidebar widths used in components */
+.sidebar-collapsed { width: 72px; }
+.sidebar-expanded { width: 256px; }

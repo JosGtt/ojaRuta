@@ -6,7 +6,7 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
   fill?: string;
 }
 
-const GuardarOffLogo: React.FC<IconProps> = ({ width = 24, height = 24, fill = "#000", ...props }) => (
+const GuardarOffLogo: React.FC<IconProps> = ({ width = 24, height = 24, fill = "#fff", ...props }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={width}

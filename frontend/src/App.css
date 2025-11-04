@@ -15,4 +15,13 @@
   --color-esmeralda-100: #DCFCE7;
   --color-esmeralda-600: #007A3D;
   --color-esmeralda-700: #15803D;
+  --color-vino: #7B1E3A;
+  --color-vino-oscuro: #4A1023;
+  --color-vino-claro: #A23E5C;
+  --color-fondo-oscuro: #2C1A24;
+}
+
+/* make sure App also uses the vino background if loaded */
+body.app-vino, body, #root {
+  background: var(--color-vino);
 }
