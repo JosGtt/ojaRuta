@@ -16,7 +16,7 @@ interface FormData {
   referencia: string;
   prioridad: 'urgente' | 'prioritario' | 'rutinario' | 'otros' | '';
   procedencia: string;
-  fecha_documento: string;
+  fecha_limite: string;
   fecha_ingreso: string;
   cite: string;
   numero_fojas: string;
@@ -72,7 +72,7 @@ const NuevaHojaRuta: React.FC = () => {
     referencia: '',
     prioridad: '',
     procedencia: '',
-    fecha_documento: '',
+    fecha_limite: '',
     fecha_ingreso: '',
     cite: '',
     numero_fojas: '',
@@ -252,8 +252,9 @@ const NuevaHojaRuta: React.FC = () => {
                   <input type="text" name="procedencia" value={formData.procedencia} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Fecha Documento *</label>
-                  <input type="date" name="fecha_documento" value={formData.fecha_documento} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <label className="block text-sm font-medium mb-2">Fecha Límite *</label>
+                  <input type="date" name="fecha_limite" value={formData.fecha_limite} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <p className="text-xs text-gray-500 mt-1">Fecha máxima para dar cumplimiento a esta hoja de ruta</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Fecha Ingreso *</label>
@@ -503,7 +504,7 @@ const NuevaHojaRuta: React.FC = () => {
                 {/* Tercera fila: FECHA DE DOCUMENTO | FECHA DE INGRESO */}
                 <tr>
                   <td className="border border-black bg-gray-100 p-1 font-bold">FECHA DE DOCUMENTO</td>
-                  <td className="border border-black p-1">{formData.fecha_documento}</td>
+                  <td className="border border-black p-1">{formData.fecha_limite}</td>
                   <td className="border border-black p-1"></td>
                 </tr>
 

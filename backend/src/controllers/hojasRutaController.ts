@@ -5,7 +5,7 @@ import pool from '../config/database';
 export const crearHojaRuta = async (req: Request, res: Response) => {
   try {
     const {
-      numero_hr, referencia, procedencia, fecha_documento, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id,
+      numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id,
       // Todos los campos extra del formulario
       destino_principal, destinos, instrucciones_adicionales,
       fecha_recepcion_1, destino_1, destinos_1, instrucciones_adicionales_1,
@@ -22,9 +22,9 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
     };
 
     const result = await pool.query(
-      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_documento, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
-      [numero_hr, referencia, procedencia, fecha_documento, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles]
+      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles, estado_cumplimiento)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
+      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles, 'pendiente']
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -33,19 +33,52 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
   }
 };
 
-// Listar/buscar hojas de ruta
+// Listar/buscar hojas de ruta con filtros de estado
 export const listarHojasRuta = async (req: Request, res: Response) => {
   try {
-    const { query } = req.query;
-    let result;
+    const { query, estado_cumplimiento, incluir_completadas } = req.query;
+    let sqlQuery = `
+      SELECT *, 
+             CASE 
+               WHEN dias_para_vencimiento < 0 THEN 'Vencida'
+               WHEN dias_para_vencimiento <= 3 THEN 'Crítica'
+               WHEN dias_para_vencimiento <= 7 THEN 'Próxima a vencer'
+               ELSE 'Normal'
+             END as alerta_vencimiento
+      FROM hojas_ruta 
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+    let paramCount = 0;
+
+    // Filtro por búsqueda de texto
     if (query) {
-      result = await pool.query(
-        `SELECT * FROM hojas_ruta WHERE numero_hr ILIKE $1 OR referencia ILIKE $1 ORDER BY fecha_ingreso DESC`,
-        [`%${query}%`]
-      );
-    } else {
-      result = await pool.query('SELECT * FROM hojas_ruta ORDER BY fecha_ingreso DESC');
+      paramCount++;
+      sqlQuery += ` AND (numero_hr ILIKE $${paramCount} OR referencia ILIKE $${paramCount})`;
+      params.push(`%${query}%`);
     }
+
+    // Filtro por estado de cumplimiento
+    if (estado_cumplimiento) {
+      paramCount++;
+      sqlQuery += ` AND estado_cumplimiento = $${paramCount}`;
+      params.push(estado_cumplimiento);
+    }
+
+    // Por defecto, no incluir las completadas a menos que se especifique
+    if (incluir_completadas !== 'true') {
+      sqlQuery += ` AND estado_cumplimiento != 'completado'`;
+    }
+
+    sqlQuery += ` ORDER BY 
+      CASE WHEN estado_cumplimiento = 'vencido' THEN 1
+           WHEN prioridad = 'urgente' THEN 2
+           WHEN prioridad = 'prioritario' THEN 3
+           ELSE 4 END,
+      dias_para_vencimiento ASC NULLS LAST,
+      fecha_ingreso DESC`;
+
+    const result = await pool.query(sqlQuery, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Error al listar hojas de ruta:', error);
@@ -74,5 +107,107 @@ export const obtenerHojaRuta = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error al obtener hoja de ruta:', error);
     res.status(500).json({ error: 'Error al obtener hoja de ruta' });
+  }
+};
+
+// Marcar hoja de ruta como completada
+export const marcarCompletada = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `UPDATE hojas_ruta 
+       SET estado_cumplimiento = 'completado', 
+           fecha_completado = CURRENT_TIMESTAMP,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $1 RETURNING *`,
+      [id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
+    }
+
+    // Crear notificación de completado
+    const hoja = result.rows[0];
+    await pool.query(
+      `INSERT INTO notificaciones (hoja_ruta_id, usuario_id, tipo, mensaje)
+       VALUES ($1, $2, 'completado', $3)`,
+      [id, hoja.usuario_creador_id, `✅ Hoja de Ruta #${hoja.numero_hr} marcada como COMPLETADA`]
+    );
+
+    res.json({ message: 'Hoja de ruta marcada como completada', hoja: result.rows[0] });
+  } catch (error) {
+    console.error('Error al marcar como completada:', error);
+    res.status(500).json({ error: 'Error al marcar como completada' });
+  }
+};
+
+// Cambiar estado de cumplimiento
+export const cambiarEstadoCumplimiento = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { estado_cumplimiento } = req.body;
+    
+    if (!['pendiente', 'en_proceso', 'completado', 'vencido'].includes(estado_cumplimiento)) {
+      return res.status(400).json({ error: 'Estado de cumplimiento inválido' });
+    }
+
+    const result = await pool.query(
+      `UPDATE hojas_ruta 
+       SET estado_cumplimiento = $1,
+           fecha_completado = CASE WHEN $1 = 'completado' THEN CURRENT_TIMESTAMP ELSE NULL END,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2 RETURNING *`,
+      [estado_cumplimiento, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al cambiar estado:', error);
+    res.status(500).json({ error: 'Error al cambiar estado' });
+  }
+};
+
+// Obtener estadísticas del dashboard
+export const obtenerEstadisticas = async (req: Request, res: Response) => {
+  try {
+    const stats = await pool.query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'pendiente') as pendientes,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'en_proceso') as en_proceso,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'completado') as completadas,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'vencido') as vencidas,
+        COUNT(*) FILTER (WHERE dias_para_vencimiento <= 3 AND estado_cumplimiento != 'completado') as criticas,
+        COUNT(*) FILTER (WHERE dias_para_vencimiento <= 7 AND dias_para_vencimiento > 3 AND estado_cumplimiento != 'completado') as proximas_vencer
+      FROM hojas_ruta
+      WHERE estado != 'cancelada'
+    `);
+
+    res.json(stats.rows[0]);
+  } catch (error) {
+    console.error('Error al obtener estadísticas:', error);
+    res.status(500).json({ error: 'Error al obtener estadísticas' });
+  }
+};
+
+// Obtener hojas por vencer (para dashboard)
+export const obtenerHojasPorVencer = async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM hojas_por_vencer 
+      WHERE estado_cumplimiento != 'completado'
+      ORDER BY dias_para_vencimiento ASC
+      LIMIT 10
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error al obtener hojas por vencer:', error);
+    res.status(500).json({ error: 'Error al obtener hojas por vencer' });
   }
 };

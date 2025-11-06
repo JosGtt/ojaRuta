@@ -7,6 +7,7 @@ import NuevaHojaRuta from './NuevaHojaRuta';
 import RegistrosPage from '../pages/RegistrosPageClean';
 import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
+import ModernDashboard from './ModernDashboard';
 import { useSearch } from '../contexts/SearchContext';
 
 const DashboardLayout: React.FC = () => {
@@ -95,9 +96,7 @@ const DashboardLayout: React.FC = () => {
             {activeSection === 'registros' && <RegistrosPage />}
             {activeSection === 'historial' && <HistorialPage />}
             {activeSection === 'notificaciones' && <NotificacionesPage />}
-            {activeSection === 'inicio' && (
-              <div className="bg-white rounded-lg p-6">Bienvenido al Dashboard</div>
-            )}
+            {activeSection === 'inicio' && <ModernDashboard />}
           </div>
         </main>
         {/* Footer institucional (use same vino background) */}

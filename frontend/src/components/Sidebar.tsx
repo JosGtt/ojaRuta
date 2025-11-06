@@ -12,6 +12,7 @@ import RegistrosIcon from "../assets/registros";
 
 const menuItems = [
   { id: 'inicio', icon: <UserIcon width={24} height={24} />, label: "Inicio" },
+  { id: 'nueva-hoja', icon: <AñadirIcon width={24} height={24} />, label: "Añadir" },
   { id: 'registros', icon: <RegistrosIcon width={24} height={24} />, label: "Registros" },
   { id: 'historial', icon: <HistorialIcon width={24} height={24} />, label: "Historial" },
   { id: 'notificaciones', icon: <NotificacionIcon width={24} height={24} />, label: "Notificaciones" },
@@ -57,37 +58,6 @@ const Sidebar = ({ expanded, onEnter, onLeave, fixed, onFixToggle, onSelectSecti
             {/* divider under logo */}
             <div className="w-full mt-4">
               <hr className="border-t border-[rgba(255,255,255,0.04)]" />
-            </div>
-
-            {/* Añadir action centered under the logo (with inline underline when active) */}
-            <div className="w-full mt-4 flex items-center justify-center flex-col">
-              <button
-                onClick={() => onSelectSection && onSelectSection('nueva-hoja')}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors duration-200 text-lg font-semibold text-[var(--color-blanco)] ${
-                  activeSection === 'nueva-hoja' ? 'bg-[var(--color-vino)]/90' : 'hover:bg-[var(--color-vino)]/80'
-                }`}
-              >
-                <span className="w-10 h-10 bg-[var(--color-vino-claro)]/15 rounded-lg flex items-center justify-center">
-                  <AñadirIcon width={20} height={20} />
-                </span>
-                {expanded && <span className="relative z-10">Añadir</span>}
-              </button>
-
-              {/* indicator placed as a sibling to avoid overlapping the next menu item */}
-              <div className="mt-2">
-                {activeSection === 'nueva-hoja' ? (
-                  expanded ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="w-24 h-1 bg-[var(--color-blanco)] rounded-full opacity-90" />
-                      <div className="w-12 h-1 bg-[var(--color-blanco)] rounded-full opacity-90" />
-                    </div>
-                  ) : (
-                    <div className="w-8 h-1 bg-[var(--color-blanco)] rounded-full" />
-                  )
-                ) : (
-                  <div className="h-1" />
-                )}
-              </div>
             </div>
           </div>
           <nav className="flex-1 flex flex-col gap-3 mt-4">
