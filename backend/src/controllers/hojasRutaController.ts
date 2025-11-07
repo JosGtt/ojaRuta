@@ -211,3 +211,27 @@ export const obtenerHojasPorVencer = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al obtener hojas por vencer' });
   }
 };
+
+// Cambiar ubicación de hoja de ruta
+export const cambiarUbicacion = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { ubicacion_actual, responsable_actual } = req.body;
+
+    const result = await pool.query(
+      `UPDATE hojas_ruta 
+       SET ubicacion_actual = $1, responsable_actual = $2, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $3 RETURNING *`,
+      [ubicacion_actual, responsable_actual, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error al cambiar ubicación:', error);
+    res.status(500).json({ error: 'Error al cambiar ubicación' });
+  }
+};

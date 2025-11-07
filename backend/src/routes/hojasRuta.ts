@@ -6,7 +6,8 @@ import {
   marcarCompletada,
   cambiarEstadoCumplimiento,
   obtenerEstadisticas,
-  obtenerHojasPorVencer
+  obtenerHojasPorVencer,
+  cambiarUbicacion
 } from '../controllers/hojasRutaController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -32,5 +33,8 @@ router.patch('/:id/completar', authenticateToken, marcarCompletada);
 
 // Cambiar estado de cumplimiento
 router.patch('/:id/estado', authenticateToken, cambiarEstadoCumplimiento);
+
+// Cambiar ubicación de hoja de ruta
+router.patch('/:id/ubicacion', authenticateToken, cambiarUbicacion);
 
 export default router;
