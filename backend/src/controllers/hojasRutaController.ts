@@ -235,3 +235,112 @@ export const cambiarUbicacion = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error al cambiar ubicación' });
   }
 };
+
+// Cambiar estado completo de hoja de ruta (nuevo)
+export const cambiarEstadoCompleto = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { estado_cumplimiento, estado_detalle } = req.body;
+
+    // Usar la función de PostgreSQL que creamos
+    const result = await pool.query(
+      `SELECT cambiar_estado_hoja($1, $2, $3, $4) as resultado`,
+      [id, estado_cumplimiento, estado_detalle, 1] // usuario_id = 1 por ahora
+    );
+
+    const resultado = result.rows[0].resultado;
+    
+    if (resultado.success) {
+      // Obtener la hoja actualizada
+      const hojaActualizada = await pool.query(
+        'SELECT * FROM dashboard_hojas_recientes WHERE id = $1',
+        [id]
+      );
+      
+      res.json({
+        success: true,
+        mensaje: resultado.mensaje,
+        hoja: hojaActualizada.rows[0]
+      });
+    } else {
+      res.status(400).json(resultado);
+    }
+  } catch (error) {
+    console.error('Error al cambiar estado completo:', error);
+    res.status(500).json({ error: 'Error al cambiar estado' });
+  }
+};
+
+// Obtener dashboard con datos en tiempo real (nuevo)
+export const obtenerDashboardTiempoReal = async (req: Request, res: Response) => {
+  try {
+    // Hojas recientes (últimas 10)
+    const hojasRecientes = await pool.query(`
+      SELECT * FROM dashboard_hojas_recientes 
+      WHERE estado_cumplimiento != 'completado'
+      ORDER BY created_at DESC 
+      LIMIT 10
+    `);
+
+    // Estadísticas en tiempo real
+    const estadisticas = await pool.query(`
+      SELECT 
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'pendiente') as pendientes,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'en_proceso') as en_proceso,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'completado') as completadas,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'vencido') as vencidas,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'cancelado') as canceladas,
+        COUNT(*) FILTER (WHERE estado_cumplimiento = 'erroneo') as erroneas,
+        COUNT(*) FILTER (WHERE dias_para_vencimiento <= 3 AND estado_cumplimiento NOT IN ('completado', 'cancelado')) as criticas
+      FROM hojas_ruta
+      WHERE estado != 'eliminado'
+    `);
+
+    // Notificaciones no leídas (últimas 10)
+    const notificaciones = await pool.query(`
+      SELECT * FROM notificaciones 
+      WHERE leida = false
+      ORDER BY fecha_creacion DESC 
+      LIMIT 10
+    `);
+
+    // Tareas pendientes (MEJORADO para incluir rutinarios)
+    const tareasPendientes = await pool.query(`
+      SELECT 
+        id,
+        numero_hr,
+        referencia,
+        procedencia,
+        prioridad,
+        dias_para_vencimiento,
+        fecha_limite,
+        estado_cumplimiento,
+        icono_estado
+      FROM dashboard_hojas_recientes 
+      WHERE estado_cumplimiento NOT IN ('completado', 'cancelado') 
+        AND (dias_para_vencimiento <= 30 OR dias_para_vencimiento IS NULL)
+      ORDER BY 
+        CASE 
+          WHEN dias_para_vencimiento < 0 THEN 1
+          WHEN dias_para_vencimiento <= 3 THEN 2  
+          WHEN dias_para_vencimiento <= 7 THEN 3
+          WHEN dias_para_vencimiento <= 30 THEN 4
+          ELSE 5
+        END,
+        dias_para_vencimiento ASC NULLS LAST
+      LIMIT 20
+    `);
+
+    res.json({
+      hojas_recientes: hojasRecientes.rows,
+      estadisticas: estadisticas.rows[0],
+      notificaciones: notificaciones.rows,
+      tareas_pendientes: tareasPendientes.rows
+    });
+
+  } catch (error) {
+    console.error('Error al obtener dashboard tiempo real:', error);
+    res.status(500).json({ error: 'Error al obtener datos del dashboard' });
+  }
+};

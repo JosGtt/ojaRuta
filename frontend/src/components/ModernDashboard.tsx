@@ -54,22 +54,30 @@ const ModernDashboard: React.FC = () => {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Función para marcar hoja como completada
+  // Función para marcar hoja como completada (ACTUALIZADA)
   const marcarComoCompletada = async (hojaId: number) => {
     if (!token) return;
     
     try {
-      await axios.patch(`http://localhost:3001/api/hojas-ruta/${hojaId}/completar`, {}, {
+      console.log('🔄 Marcando hoja como completada:', hojaId);
+      
+      // NUEVO: Usar el endpoint de cambio de estado completo
+      await axios.patch(`http://localhost:3001/api/hojas-ruta/${hojaId}/estado-completo`, {
+        estado_cumplimiento: 'completado',
+        estado_detalle: 'Marcada como completada desde el dashboard'
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      // Refrescar los datos
+      console.log('✅ Estado cambiado exitosamente');
+      
+      // Refrescar los datos del dashboard
       fetchDashboardData();
       
-      // Notificación de éxito
-      console.log('Hoja marcada como completada');
+      // Mostrar notificación de éxito
+      console.log('🎉 Hoja marcada como completada - se generará notificación automática');
     } catch (error) {
-      console.error('Error al marcar como completada:', error);
+      console.error('❌ Error al marcar como completada:', error);
     }
   };
 
@@ -93,98 +101,177 @@ const ModernDashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     if (!token) {
-      console.error('No hay token');
+      console.error('❌ No hay token - no se puede hacer fetch');
       return;
     }
     
     try {
       setLoading(true);
-      console.log('🔍 Iniciando fetch de datos...');
-      console.log('🔑 Token:', token?.substring(0, 20) + '...');
+      console.log('� INICIO fetchDashboardData - Conectando al dashboard en tiempo real...');
+      console.log('🔑 Token disponible:', token ? 'SÍ' : 'NO');
       
-      // Fetch básico sin parámetros
-      const response = await axios.get('http://localhost:3001/api/hojas-ruta', {
+      // NUEVO: Usar el endpoint de dashboard en tiempo real
+      const response = await axios.get('http://localhost:3001/api/hojas-ruta/dashboard/tiempo-real', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      console.log('📊 Respuesta del backend:', response);
-      console.log('📋 Datos recibidos:', response.data);
-      console.log('📈 Cantidad de hojas:', response.data?.length);
+      console.log('📊 RESPUESTA COMPLETA del backend:', response.data);
       
-      const todasLasHojas = response.data || [];
+      const dashboardData = response.data;
       
-      // Calcular estadísticas básicas
-      const stats = {
-        total: todasLasHojas.length,
-        pendientes: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'pendiente').length,
-        en_proceso: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'en_proceso').length,
-        completadas: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'completado').length,
-        vencidas: todasLasHojas.filter((h: any) => h.dias_para_vencimiento < 0).length
-      };
-      
-      console.log('📊 Estadísticas calculadas:', stats);
-      setEstadisticas(stats);
-      
-      // Mostrar primeras 5 hojas
-      setHojasRecientes(todasLasHojas.slice(0, 5));
-      
-      // Notificaciones básicas
-      const notificacionesBasicas = [
-        { 
-          id: 1, 
-          mensaje: `✅ Sistema conectado. ${todasLasHojas.length} hojas cargadas.`, 
-          fecha: new Date().toISOString(), 
-          leida: false 
-        }
-      ];
-      
-      if (todasLasHojas.length > 0) {
-        const hojasVencidas = todasLasHojas.filter((h: any) => h.dias_para_vencimiento < 0);
-        if (hojasVencidas.length > 0) {
-          notificacionesBasicas.push({
-            id: 2,
-            mensaje: `⚠️ ${hojasVencidas.length} hoja(s) vencida(s) requieren atención`,
-            fecha: new Date().toISOString(),
-            leida: false
-          });
-        }
+      // Establecer datos directamente desde la respuesta del backend
+      if (dashboardData.hojas_recientes) {
+        setHojasRecientes(dashboardData.hojas_recientes.slice(0, 8)); // Mostrar 8 hojas recientes
+        console.log('📋 Hojas recientes cargadas:', dashboardData.hojas_recientes.length);
       }
       
-      setNotificaciones(notificacionesBasicas);
+      if (dashboardData.estadisticas) {
+        setEstadisticas({
+          total: parseInt(dashboardData.estadisticas.total) || 0,
+          pendientes: parseInt(dashboardData.estadisticas.pendientes) || 0,
+          en_proceso: parseInt(dashboardData.estadisticas.en_proceso) || 0,
+          completadas: parseInt(dashboardData.estadisticas.completadas) || 0,
+          vencidas: parseInt(dashboardData.estadisticas.vencidas) || 0
+        });
+        console.log('📊 Estadísticas actualizadas:', dashboardData.estadisticas);
+      }
       
-      // Tareas básicas
-      const tareasBasicas = todasLasHojas
-        .filter((h: any) => h.estado_cumplimiento !== 'completado')
-        .slice(0, 6)
-        .map((h: any) => ({
-          id: h.id,
-          titulo: `${h.numero_hr} - ${(h.procedencia || 'Sin procedencia').substring(0, 20)}`,
-          tipo: h.dias_para_vencimiento <= 3 ? 'urgente' : 'prioritario',
-          fecha_vencimiento: h.fecha_limite || new Date().toISOString()
+      if (dashboardData.notificaciones) {
+        // Formatear notificaciones para el frontend
+        const notificacionesFormateadas = dashboardData.notificaciones.map((notif: any) => ({
+          id: notif.id,
+          mensaje: notif.mensaje,
+          fecha: notif.fecha_creacion || notif.created_at,
+          leida: notif.leida,
+          tipo: notif.tipo
         }));
+        setNotificaciones(notificacionesFormateadas.slice(0, 5)); // Limitar a 5 notificaciones máximo
+        console.log('🔔 Notificaciones cargadas:', notificacionesFormateadas.length);
+      }
+      
+      if (dashboardData.tareas_pendientes) {
+        console.log('🔍 Tareas recibidas del backend:', dashboardData.tareas_pendientes);
         
-      setTareas(tareasBasicas);
+        // Formatear tareas pendientes con mejor lógica de clasificación
+        const tareasFormateadas = dashboardData.tareas_pendientes.map((tarea: any) => {
+          let tipoTarea = 'rutinario';
+          
+          // Lógica mejorada para clasificar tareas
+          if (tarea.dias_para_vencimiento !== null && tarea.dias_para_vencimiento !== undefined) {
+            if (tarea.dias_para_vencimiento <= 0) {
+              tipoTarea = 'urgente'; // Vencidas
+            } else if (tarea.dias_para_vencimiento <= 3) {
+              tipoTarea = 'urgente'; // Próximas a vencer
+            } else if (tarea.dias_para_vencimiento <= 7) {
+              tipoTarea = 'prioritario'; // Una semana
+            } else {
+              tipoTarea = 'rutinario'; // Más de una semana
+            }
+          }
+          
+          // También considerar prioridad original si existe
+          if (tarea.prioridad === 'urgente' || tarea.prioridad === 'alta') {
+            // Solo override si no es vencida
+            if (tarea.dias_para_vencimiento > 0) {
+              tipoTarea = 'urgente';
+            }
+          } else if (tarea.prioridad === 'rutinario' || tarea.prioridad === 'baja') {
+            // Si la prioridad original es rutinario, mantenerlo
+            tipoTarea = 'rutinario';
+          }
+          
+          return {
+            id: tarea.id,
+            titulo: `${tarea.numero_hr} - ${(tarea.referencia || tarea.procedencia || 'Sin título').substring(0, 25)}...`, 
+            tipo: tipoTarea,
+            fecha_vencimiento: tarea.fecha_limite || new Date().toISOString(),
+            estado_cumplimiento: tarea.estado_cumplimiento,
+            dias_para_vencimiento: tarea.dias_para_vencimiento,
+            alerta_vencimiento: tarea.alerta_vencimiento,
+            prioridad_original: tarea.prioridad
+          };
+        });
+        
+        // Separar por tipos para mostrar balance
+        const urgentes = tareasFormateadas.filter(t => t.tipo === 'urgente');
+        const prioritarios = tareasFormateadas.filter(t => t.tipo === 'prioritario');  
+        const rutinarios = tareasFormateadas.filter(t => t.tipo === 'rutinario');
+        
+        console.log('📊 Tareas clasificadas:', { 
+          urgentes: urgentes.length, 
+          prioritarios: prioritarios.length, 
+          rutinarios: rutinarios.length 
+        });
+        
+        console.log('📋 Detalle rutinarios:', rutinarios.map(r => `${r.titulo} (${r.dias_para_vencimiento} días, prioridad: ${r.prioridad_original})`));
+        
+        // Mostrar un balance: máximo 3 de cada tipo para tener más variedad
+        const tareasBalanceadas = [
+          ...urgentes.slice(0, 3),
+          ...prioritarios.slice(0, 3), 
+          ...rutinarios.slice(0, 3)
+        ];
+        
+        setTareas(tareasBalanceadas);
+        console.log('⏰ Tareas balanceadas cargadas:', tareasBalanceadas.length);
+        console.log('📊 Balance final:', {
+          urgentes: tareasBalanceadas.filter(t => t.tipo === 'urgente').length,
+          prioritarios: tareasBalanceadas.filter(t => t.tipo === 'prioritario').length, 
+          rutinarios: tareasBalanceadas.filter(t => t.tipo === 'rutinario').length
+        });
+        console.log('📋 Detalle tareas final:', tareasBalanceadas.map(t => `${t.titulo} (${t.tipo})`));
+      } else {
+        console.log('❌ No se recibieron tareas_pendientes del backend');
+        setTareas([]);
+      }
+      
+      console.log('✅ Dashboard tiempo real cargado exitosamente');
       
     } catch (error) {
-      console.error('❌ Error completo:', error);
-      console.error('❌ Error response:', error.response);
-      console.error('❌ Error message:', error.message);
+      console.error('❌ Error al cargar dashboard tiempo real:', error);
       
-      // Datos de prueba si hay error
-      setEstadisticas({
-        total: 0,
-        pendientes: 0,
-        en_proceso: 0,
-        completadas: 0,
-        vencidas: 0
-      });
-      
-      setNotificaciones([{
-        id: 1,
-        mensaje: '❌ Error de conexión con el servidor',
-        fecha: new Date().toISOString(),
-        leida: false
-      }]);
+      // Fallback: intentar cargar datos básicos
+      try {
+        console.log('🔄 Intentando fallback con endpoint básico...');
+        const fallbackResponse = await axios.get('http://localhost:3001/api/hojas-ruta', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const todasLasHojas = fallbackResponse.data || [];
+        console.log('📋 Fallback: Hojas cargadas:', todasLasHojas.length);
+        
+        // Calcular estadísticas básicas
+        const stats = {
+          total: todasLasHojas.length,
+          pendientes: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'pendiente' || !h.estado_cumplimiento).length,
+          en_proceso: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'en_proceso').length,
+          completadas: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'completado').length,
+          vencidas: todasLasHojas.filter((h: any) => h.dias_para_vencimiento < 0).length
+        };
+        
+        setEstadisticas(stats);
+        setHojasRecientes(todasLasHojas.slice(0, 5));
+        
+        // Notificación de fallback
+        setNotificaciones([{
+          id: 1,
+          mensaje: `📊 Datos básicos cargados. ${todasLasHojas.length} hojas encontradas.`,
+          fecha: new Date().toISOString(),
+          leida: false
+        }]);
+        
+      } catch (fallbackError) {
+        console.error('❌ Error en fallback:', fallbackError);
+        
+        // Datos vacíos si todo falla
+        setEstadisticas({ total: 0, pendientes: 0, en_proceso: 0, completadas: 0, vencidas: 0 });
+        setNotificaciones([{
+          id: 1,
+          mensaje: '❌ Error de conexión. Revisa que el backend esté funcionando.',
+          fecha: new Date().toISOString(),
+          leida: false
+        }]);
+      }
       
     } finally {
       setLoading(false);
@@ -193,6 +280,24 @@ const ModernDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
+  }, [token]);
+
+  // NUEVO: Actualización automática cada 30 segundos
+  useEffect(() => {
+    if (!token) return;
+    
+    console.log('⏰ Configurando actualización automática cada 30 segundos');
+    
+    const interval = setInterval(() => {
+      console.log('🔄 Actualizando dashboard automáticamente...');
+      fetchDashboardData();
+    }, 30000); // 30 segundos
+    
+    // Cleanup function para limpiar el interval
+    return () => {
+      console.log('🛑 Limpiando timer de actualización automática');
+      clearInterval(interval);
+    };
   }, [token]);
 
   const getTareaColor = (tipo: string) => {
@@ -291,6 +396,15 @@ const ModernDashboard: React.FC = () => {
           </div>
 
           <div className="space-y-3">
+            {/* DEBUG: Mostrar información de depuración */}
+            {tareas.length === 0 && (
+              <div className="text-xs text-white/60 bg-white/10 p-3 rounded-lg">
+                🔍 Debug: No hay tareas cargadas. 
+                <br />Estado: {loading ? 'Cargando...' : 'Carga completada'}
+                <br />Total tareas en estado: {tareas.length}
+              </div>
+            )}
+            
             {['urgente', 'prioritario', 'rutinario'].map((tipo) => {
               const tareasDelTipo = tareas.filter(t => t.tipo === tipo);
               return (
@@ -370,24 +484,30 @@ const ModernDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2"> {/* Reducido de space-y-3 a space-y-2 */}
             {notificaciones.map((notif) => (
               <div 
                 key={notif.id} 
-                className={`p-4 rounded-xl cursor-pointer transition-all hover:bg-white/15 ${
-                  notif.leida ? 'bg-white/10' : 'bg-white/20 border-l-4 border-[var(--color-esmeralda)]'
-                }`}
+                className={`p-3 rounded-lg cursor-pointer transition-all hover:bg-white/15 ${
+                  notif.leida ? 'bg-white/10' : 'bg-white/20 border-l-3 border-[var(--color-esmeralda)]'
+                }`} // Reducido padding de p-4 a p-3 y rounded-xl a rounded-lg
                 onClick={() => marcarNotificacionLeida(notif.id)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{notif.mensaje}</p>
-                    <p className="text-xs text-white/80 mt-1">
-                      {new Date(notif.fecha).toLocaleDateString()}
+                <div className="flex items-center justify-between"> {/* Cambiado items-start a items-center */}
+                  <div className="flex-1 min-w-0"> {/* Añadido min-w-0 para truncar */}
+                    <p className="text-xs font-medium leading-tight truncate"> {/* Reducido a text-xs y añadido truncate */}
+                      {/* Acortar mensajes largos */}
+                      {notif.mensaje.length > 50 ? notif.mensaje.substring(0, 47) + '...' : notif.mensaje}
+                    </p>
+                    <p className="text-[10px] text-white/70 mt-0.5"> {/* Más pequeño */}
+                      {new Date(notif.fecha).toLocaleDateString('es-ES', { 
+                        day: '2-digit', 
+                        month: '2-digit' 
+                      })}
                     </p>
                   </div>
                   {!notif.leida && (
-                    <div className="w-2 h-2 bg-[var(--color-esmeralda)] rounded-full ml-2 mt-1"></div>
+                    <div className="w-1.5 h-1.5 bg-[var(--color-esmeralda)] rounded-full ml-2 flex-shrink-0"></div>
                   )}
                 </div>
               </div>

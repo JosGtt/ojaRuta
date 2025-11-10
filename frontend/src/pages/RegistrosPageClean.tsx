@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../contexts/SearchContext';
 
 interface HojaRuta {
@@ -17,9 +16,12 @@ interface HojaRuta {
   estado: string;
 }
 
-const RegistrosPageClean: React.FC = () => {
+interface RegistrosPageCleanProps {
+  onHojaSelected?: (hoja: HojaRuta) => void;
+}
+
+const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected }) => {
   const { token } = useAuth();
-  const navigate = useNavigate();
   const { query } = useSearch();
   const [hojas, setHojas] = useState<HojaRuta[]>([]);
   const [loading, setLoading] = useState(false);
@@ -81,7 +83,7 @@ const RegistrosPageClean: React.FC = () => {
                       <td className="p-3 border-b border-white/6 text-white">{hr.fecha_ingreso?.slice(0,10)}</td>
                       <td className="p-3 border-b border-white/6">
                         <button
-                          onClick={() => navigate(`/hoja/${hr.id}`)}
+                          onClick={() => onHojaSelected ? onHojaSelected(hr) : console.log('No handler provided')}
                           className="bg-[var(--color-vino-oscuro)] hover:bg-[var(--color-vino)] text-white px-3 py-1 rounded-md text-sm shadow-sm"
                         >
                           Ver Detalle

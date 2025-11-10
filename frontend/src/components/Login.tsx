@@ -75,7 +75,7 @@ const Login = () => {
                   value={usuario}
                   onChange={(e) => setUsuario(e.target.value)}
                   placeholder="Ingrese su usuario"
-                  className="w-full pl-10 pr-4 py-3 border border-[var(--color-esmeralda-100)] rounded-lg focus:ring-2 focus:ring-[var(--color-esmeralda-600)] focus:border-transparent transition-all duration-200 bg-[var(--color-esmeralda-50)] focus:bg-white"
+                  className="w-full pl-10 pr-4 py-3 border border-[var(--color-esmeralda-100)] rounded-lg focus:ring-2 focus:ring-[var(--color-esmeralda-600)] focus:border-transparent transition-all duration-200 bg-[var(--color-esmeralda-50)] focus:bg-white text-gray-900"
                   disabled={isLoading}
                 />
               </div>
@@ -95,7 +95,7 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Ingrese su contraseña"
-                  className="w-full pl-10 pr-12 py-3 border border-[var(--color-esmeralda-100)] rounded-lg focus:ring-2 focus:ring-[var(--color-esmeralda-600)] focus:border-transparent transition-all duration-200 bg-[var(--color-esmeralda-50)] focus:bg-white"
+                  className="w-full pl-10 pr-12 py-3 border border-[var(--color-esmeralda-100)] rounded-lg focus:ring-2 focus:ring-[var(--color-esmeralda-600)] focus:border-transparent transition-all duration-200 bg-[var(--color-esmeralda-50)] focus:bg-white text-gray-900"
                   disabled={isLoading}
                 />
                 <button
