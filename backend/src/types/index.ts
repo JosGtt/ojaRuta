@@ -15,6 +15,8 @@ export interface HojaRuta {
   numero_hr: string;
   referencia: string;
   procedencia: string;
+  nombre_solicitante?: string;
+  telefono_celular?: string;
   fecha_documento?: Date;
   fecha_ingreso: Date;
   cite?: string;

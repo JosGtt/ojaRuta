@@ -9,7 +9,8 @@ import {
   obtenerHojasPorVencer,
   cambiarUbicacion,
   cambiarEstadoCompleto,
-  obtenerDashboardTiempoReal
+  obtenerDashboardTiempoReal,
+  actualizarEstadoHojaRuta
 } from '../controllers/hojasRutaController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -41,6 +42,9 @@ router.patch('/:id/estado', authenticateToken, cambiarEstadoCumplimiento);
 
 // Cambiar estado completo (nuevo)
 router.patch('/:id/estado-completo', authenticateToken, cambiarEstadoCompleto);
+
+// Actualizar estado de hoja de ruta (seguimiento mejorado)
+router.put('/:id/estado', authenticateToken, actualizarEstadoHojaRuta);
 
 // Cambiar ubicación de hoja de ruta
 router.patch('/:id/ubicacion', authenticateToken, cambiarUbicacion);

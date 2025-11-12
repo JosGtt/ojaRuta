@@ -13,6 +13,8 @@ import SedegesLogo from './SedegesLogo';
 
 interface FormData {
   numero_hr: string;
+  nombre_solicitante: string;
+  telefono_celular: string;
   referencia: string;
   prioridad: 'urgente' | 'prioritario' | 'rutinario' | 'otros' | '';
   procedencia: string;
@@ -69,6 +71,8 @@ const NuevaHojaRuta: React.FC = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     numero_hr: '',
+    nombre_solicitante: '',
+    telefono_celular: '',
     referencia: '',
     prioridad: '',
     procedencia: '',
@@ -177,11 +181,11 @@ const NuevaHojaRuta: React.FC = () => {
       const img = new window.Image();
       img.src = dataUrl;
       img.onload = () => {
-        const imgWidth = 210; // A4 width in mm
-        const pageHeight = 297; // A4 height in mm
+        const imgWidth = 216; // Oficio width in mm (21.6 cm)
+        const pageHeight = 330; // Oficio height in mm (33 cm)
         const imgHeight = (img.height * imgWidth) / img.width;
         let heightLeft = imgHeight;
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jsPDF('p', 'mm', [216, 330]); // Tamaño oficio boliviano
         let position = 0;
         pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
@@ -232,6 +236,14 @@ const NuevaHojaRuta: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium mb-2">Número H.R. *</label>
                   <input type="text" name="numero_hr" value={formData.numero_hr} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Nombre del Solicitante *</label>
+                  <input type="text" name="nombre_solicitante" value={formData.nombre_solicitante} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Teléfono Celular *</label>
+                  <input type="tel" name="telefono_celular" value={formData.telefono_celular} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Prioridad *</label>
@@ -495,10 +507,22 @@ const NuevaHojaRuta: React.FC = () => {
                   </td>
                 </tr>
 
-                {/* Segunda fila: PROCEDENCIA | FECHA DE DOCUMENTO */}
+                {/* Segunda fila: PROCEDENCIA */}
                 <tr>
                   <td className="border border-black bg-gray-100 p-1 font-bold">PROCEDENCIA</td>
                   <td className="border border-black p-1" colSpan={2}>{formData.procedencia}</td>
+                </tr>
+
+                {/* Nueva fila: NOMBRE DEL SOLICITANTE Y TELÉFONO CELULAR */}
+                <tr>
+                  <td className="border border-black bg-gray-100 p-1 font-bold">NOMBRE SOLICITANTE</td>
+                  <td className="border border-black p-1">{formData.nombre_solicitante}</td>
+                  <td className="border border-black p-1">
+                    <div className="flex">
+                      <span className="bg-gray-100 font-bold pr-2">TEL:</span>
+                      <span>{formData.telefono_celular}</span>
+                    </div>
+                  </td>
                 </tr>
 
                 {/* Tercera fila: FECHA DE DOCUMENTO | FECHA DE INGRESO */}

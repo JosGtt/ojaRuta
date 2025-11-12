@@ -37,6 +37,8 @@ const HojaRutaPreview: React.FC<HojaRutaPreviewProps> = ({ data }) => {
     referencia: data.referencia || '',
     prioridad: data.prioridad || '',
     procedencia: data.procedencia || '',
+    nombre_solicitante: data.nombre_solicitante || '',
+    telefono_celular: data.telefono_celular || '',
     fecha_documento: data.fecha_documento || '',
     fecha_ingreso: data.fecha_ingreso || '',
     cite: data.cite || '',
@@ -111,6 +113,16 @@ const HojaRutaPreview: React.FC<HojaRutaPreviewProps> = ({ data }) => {
             <tr>
               <td className="border border-black bg-gray-100 p-1 font-bold">PROCEDENCIA</td>
               <td className="border border-black p-1" colSpan={2}>{hoja.procedencia}</td>
+            </tr>
+            <tr>
+              <td className="border border-black bg-gray-100 p-1 font-bold">NOMBRE SOLICITANTE</td>
+              <td className="border border-black p-1">{hoja.nombre_solicitante}</td>
+              <td className="border border-black p-1">
+                <div className="flex">
+                  <span className="bg-gray-100 font-bold pr-2">TEL:</span>
+                  <span>{hoja.telefono_celular}</span>
+                </div>
+              </td>
             </tr>
             <tr>
               <td className="border border-black bg-gray-100 p-1 font-bold">FECHA DE DOCUMENTO</td>

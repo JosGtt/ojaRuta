@@ -6,6 +6,8 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
   try {
     const {
       numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id,
+      // Nuevos campos
+      nombre_solicitante, telefono_celular,
       // Todos los campos extra del formulario
       destino_principal, destinos, instrucciones_adicionales,
       fecha_recepcion_1, destino_1, destinos_1, instrucciones_adicionales_1,
@@ -22,9 +24,9 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
     };
 
     const result = await pool.query(
-      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles, estado_cumplimiento)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, detalles, 'pendiente']
+      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
+      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, 'pendiente']
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -342,5 +344,36 @@ export const obtenerDashboardTiempoReal = async (req: Request, res: Response) =>
   } catch (error) {
     console.error('Error al obtener dashboard tiempo real:', error);
     res.status(500).json({ error: 'Error al obtener datos del dashboard' });
+  }
+};
+
+// Actualizar estado de hoja de ruta
+export const actualizarEstadoHojaRuta = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    // Validar que el estado sea válido - Flujo: Pendiente → Enviada → En Proceso → Finalizada → Archivada
+    const estadosPermitidos = ['pendiente', 'enviada', 'en_proceso', 'finalizada', 'archivada'];
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({ error: 'Estado no válido. Estados permitidos: ' + estadosPermitidos.join(', ') });
+    }
+
+    const result = await pool.query(
+      'UPDATE hojas_ruta SET estado = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [estado, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
+    }
+
+    res.json({ 
+      message: 'Estado actualizado correctamente',
+      hoja: result.rows[0] 
+    });
+  } catch (error) {
+    console.error('Error al actualizar estado:', error);
+    res.status(500).json({ error: 'Error al actualizar el estado' });
   }
 };

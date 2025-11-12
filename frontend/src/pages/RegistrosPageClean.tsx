@@ -6,6 +6,8 @@ import { useSearch } from '../contexts/SearchContext';
 interface HojaRuta {
   id: number;
   numero_hr: string;
+  nombre_solicitante?: string;
+  telefono_celular?: string;
   referencia: string;
   procedencia: string;
   fecha_documento?: string;
@@ -64,6 +66,8 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
                 <thead>
                   <tr className="bg-[rgba(255,255,255,0.04)]">
                     <th className="p-3 text-left text-sm font-semibold text-white/80">N° H.R.</th>
+                    <th className="p-3 text-left text-sm font-semibold text-white/80">Nombre</th>
+                    <th className="p-3 text-left text-sm font-semibold text-white/80">Teléfono</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Referencia</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Procedencia</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Prioridad</th>
@@ -76,6 +80,8 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
                   {hojas.map(hr => (
                     <tr key={hr.id} className="transition hover:bg-[rgba(255,255,255,0.02)] cursor-pointer">
                       <td className="p-3 border-b border-white/6 font-mono text-white">{hr.numero_hr}</td>
+                      <td className="p-3 border-b border-white/6 text-white">{hr.nombre_solicitante || '-'}</td>
+                      <td className="p-3 border-b border-white/6 text-white">{hr.telefono_celular || '-'}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.referencia}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.procedencia}</td>
                       <td className="p-3 border-b border-white/6 text-white capitalize">{hr.prioridad}</td>
