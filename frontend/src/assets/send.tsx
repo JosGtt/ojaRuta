@@ -19,9 +19,8 @@ const SendIcon: React.FC<IconProps> = ({ width = 24, height = 24, fill = "#fff",
       <path 
         fill={fill} 
         fillRule="evenodd" 
-        d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" 
+        d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" 
         clipRule="evenodd" 
-        opacity="1" 
       />
     </g>
   </svg>

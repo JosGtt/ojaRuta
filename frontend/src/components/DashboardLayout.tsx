@@ -10,6 +10,7 @@ import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
 import ModernDashboard from './ModernDashboard';
 import HojaRutaDetalleView from './HojaRutaDetalleView';
+import EnviarPage from '../pages/EnviarPageNew';
 import { useSearch } from '../contexts/SearchContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -128,7 +129,8 @@ const DashboardLayout: React.FC = () => {
             )}
             {activeSection === 'historial' && <HistorialPage />}
             {activeSection === 'notificaciones' && <NotificacionesPage />}
-            {activeSection === 'inicio' && <ModernDashboard />}
+            {activeSection === 'enviar' && <EnviarPage />}
+            {activeSection === 'inicio' && <ModernDashboard onNavigate={setActiveSection} />}
           </div>
         </main>
         {/* Footer institucional (use same vino background) */}

@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import hojasRutaRoutes from './routes/hojasRuta';
 import notificacionesRoutes from './routes/notificaciones';
+import enviarRoutes from './routes/enviar';
+import historialRoutes from './routes/historial';
 
 dotenv.config();
 
@@ -20,6 +22,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/hojas-ruta', hojasRutaRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/enviar', enviarRoutes);
+app.use('/api/historial', historialRoutes);
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

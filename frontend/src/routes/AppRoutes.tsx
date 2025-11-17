@@ -6,6 +6,7 @@ import ProtectedRoute from '../components/ProtectedRoute';
 import RegistrosPage from '../pages/RegistrosPageClean';
 import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
+import EnviarPage from '../pages/EnviarPage';
 import DashboardHojaRuta from '../components/DashboardHojaRuta';
 
 const AppRoutes = () => {
@@ -67,6 +68,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <NotificacionesPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/enviar" 
+        element={
+          <ProtectedRoute>
+            <EnviarPage />
           </ProtectedRoute>
         } 
       />
