@@ -118,15 +118,22 @@ const NuevaHojaRuta: React.FC = () => {
         const response = await axios.get('http://localhost:3001/api/destinos');
         console.log('📥 Respuesta de destinos:', response.data);
         if (response.data.success) {
-          // Aplanar las categorías en un solo array
+          // Aplanar las categorías en un solo array y agregar tipos
           const destinosAplanados: any[] = [];
           Object.keys(response.data.destinos).forEach(categoria => {
             response.data.destinos[categoria].forEach((destino: any) => {
-              destinosAplanados.push(destino);
+              // Añadir el tipo basado en la categoría
+              const tipo = categoria === 'Centros de Acogida' ? 'centro_acogida' :
+                          categoria === 'Direcciones Administrativas' ? 'direccion' : 'otro';
+              destinosAplanados.push({
+                ...destino,
+                tipo: tipo
+              });
             });
           });
           setDestinosDisponibles(destinosAplanados);
           console.log('✅ Destinos cargados:', destinosAplanados.length, 'destinos');
+          console.log('📋 Primeros 3 destinos con tipos:', destinosAplanados.slice(0, 3));
         } else {
           console.error('❌ Error en respuesta:', response.data.message);
         }

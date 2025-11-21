@@ -227,12 +227,16 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       destinosArray: destinos.slice(0, 2)
     });
 
-    // Filtrar destinos según el contexto
-    const destinosParaSeleccion = destinos.filter(d => 
-      editingSection === 0 ? 
-        ['centro_acogida', 'direccion', 'departamento'].includes(d.tipo) : // Para envío principal
-        ['centro_acogida'].includes(d.tipo) // Para recepciones, solo centros
-    );
+    // TEMPORAL: Mostrar todos los destinos sin filtrar para debug
+    const destinosParaSeleccion = destinos; // destinos.filter(d => {
+    //   if (editingSection === 0) {
+    //     // Para envío principal, incluir centros, direcciones y otros
+    //     return ['centro_acogida', 'direccion', 'otro'].includes(d.tipo);
+    //   } else {
+    //     // Para recepciones, solo centros de acogida
+    //     return d.tipo === 'centro_acogida';
+    //   }
+    // });
 
     console.log('🔍 Filtrado destinos:', {
       totalDestinos: destinos.length,
@@ -241,6 +245,8 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       tiposDisponibles: destinos.map(d => d.tipo).filter((v, i, a) => a.indexOf(v) === i),
       destinosParaSeleccion: destinosParaSeleccion.slice(0, 3)
     });
+
+    console.log('🏗️ Renderizando opciones:', destinosParaSeleccion.length, 'destinos');
 
     const handleInstruccionToggle = (instruccion: string) => {
       setFormData(prev => ({
@@ -302,7 +308,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
                   disabled={loadingDestinos}
                 >
                   <option value="">Seleccionar destino...</option>
-                  {console.log('🏗️ Renderizando opciones:', destinosParaSeleccion.length, 'destinos')}
+                  {destinosParaSeleccion.length === 0 && <option disabled>⚠️ No hay destinos disponibles</option>}
                   {destinosParaSeleccion.map(destino => (
                     <option key={destino.id} value={destino.nombre}>
                       {destino.nombre}
