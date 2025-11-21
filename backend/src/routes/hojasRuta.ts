@@ -3,6 +3,7 @@ import {
   crearHojaRuta, 
   listarHojasRuta, 
   obtenerHojaRuta,
+  actualizarHojaRuta,
   marcarCompletada,
   cambiarEstadoCumplimiento,
   obtenerEstadisticas,
@@ -10,7 +11,8 @@ import {
   cambiarUbicacion,
   cambiarEstadoCompleto,
   obtenerDashboardTiempoReal,
-  actualizarEstadoHojaRuta
+  actualizarEstadoHojaRuta,
+  obtenerDestinos
 } from '../controllers/hojasRutaController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -34,17 +36,17 @@ router.get('/por-vencer/lista', authenticateToken, obtenerHojasPorVencer);
 // Obtener detalle de hoja de ruta
 router.get('/:id', authenticateToken, obtenerHojaRuta);
 
+// Actualizar hoja de ruta completa
+router.put('/:id', authenticateToken, actualizarHojaRuta);
+
 // Marcar hoja como completada
 router.patch('/:id/completar', authenticateToken, marcarCompletada);
 
-// Cambiar estado de cumplimiento
+// Cambiar estado de cumplimiento (UNIFICADO)
 router.patch('/:id/estado', authenticateToken, cambiarEstadoCumplimiento);
 
 // Cambiar estado completo (nuevo)
 router.patch('/:id/estado-completo', authenticateToken, cambiarEstadoCompleto);
-
-// Actualizar estado de hoja de ruta (seguimiento mejorado)
-router.put('/:id/estado', authenticateToken, actualizarEstadoHojaRuta);
 
 // Cambiar ubicación de hoja de ruta
 router.patch('/:id/ubicacion', authenticateToken, cambiarUbicacion);

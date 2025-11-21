@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +17,7 @@ interface FormData {
   telefono_celular: string;
   referencia: string;
   prioridad: 'urgente' | 'prioritario' | 'rutinario' | 'otros' | '';
+  estado: 'pendiente' | 'enviada' | 'en_proceso' | 'finalizada' | 'archivada' | '';
   procedencia: string;
   fecha_limite: string;
   fecha_ingreso: string;
@@ -75,6 +76,7 @@ const NuevaHojaRuta: React.FC = () => {
     telefono_celular: '',
     referencia: '',
     prioridad: '',
+    estado: '',
     procedencia: '',
     fecha_limite: '',
     fecha_ingreso: '',
@@ -96,6 +98,48 @@ const NuevaHojaRuta: React.FC = () => {
     destinos_3: [],
     instrucciones_adicionales_3: ''
   });
+
+  const [destinosDisponibles, setDestinosDisponibles] = useState<any[]>([]);
+  const [loadingDestinos, setLoadingDestinos] = useState(true);
+  const [mostrarDestinoPrincipalPersonalizado, setMostrarDestinoPrincipalPersonalizado] = useState(false);
+  const [destinoPrincipalPersonalizado, setDestinoPrincipalPersonalizado] = useState('');
+  const [destinoPersonalizado1, setDestinoPersonalizado1] = useState('');
+  const [destinoPersonalizado2, setDestinoPersonalizado2] = useState('');
+  const [destinoPersonalizado3, setDestinoPersonalizado3] = useState('');
+  const [mostrarDestinoPersonalizado1, setMostrarDestinoPersonalizado1] = useState(false);
+  const [mostrarDestinoPersonalizado2, setMostrarDestinoPersonalizado2] = useState(false);
+  const [mostrarDestinoPersonalizado3, setMostrarDestinoPersonalizado3] = useState(false);
+
+  // Cargar destinos disponibles
+  useEffect(() => {
+    const cargarDestinos = async () => {
+      try {
+        console.log('🔄 Cargando destinos disponibles...');
+        const response = await axios.get('http://localhost:3001/api/destinos');
+        console.log('📥 Respuesta de destinos:', response.data);
+        if (response.data.success) {
+          // Aplanar las categorías en un solo array
+          const destinosAplanados: any[] = [];
+          Object.keys(response.data.destinos).forEach(categoria => {
+            response.data.destinos[categoria].forEach((destino: any) => {
+              destinosAplanados.push(destino);
+            });
+          });
+          setDestinosDisponibles(destinosAplanados);
+          console.log('✅ Destinos cargados:', destinosAplanados.length, 'destinos');
+        } else {
+          console.error('❌ Error en respuesta:', response.data.message);
+        }
+      } catch (error) {
+        console.error('❌ Error al cargar destinos:', error);
+        toast.error('Error al cargar destinos');
+      } finally {
+        setLoadingDestinos(false);
+      }
+    };
+    
+    cargarDestinos();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -138,7 +182,7 @@ const NuevaHojaRuta: React.FC = () => {
       // Enviar todos los campos del formulario para que se guarden en detalles (JSONB)
       const payload = {
         ...formData,
-        estado: 'pendiente',
+        estado: formData.estado || 'pendiente', // Usar el estado seleccionado o 'pendiente' por defecto
         observaciones: formData.instrucciones_adicionales,
         usuario_creador_id: user.id
       };
@@ -148,7 +192,35 @@ const NuevaHojaRuta: React.FC = () => {
         }
       });
       toast.success('Hoja de ruta guardada exitosamente');
-      navigate('/registros');
+      // Limpiar el formulario después de guardar exitosamente
+      setFormData({
+        numero_hr: '',
+        nombre_solicitante: '',
+        telefono_celular: '',
+        referencia: '',
+        prioridad: '',
+        estado: '',
+        procedencia: '',
+        fecha_limite: '',
+        fecha_ingreso: '',
+        cite: '',
+        numero_fojas: '',
+        destino_principal: '',
+        destinos: [],
+        instrucciones_adicionales: '',
+        fecha_recepcion_1: '',
+        destino_1: '',
+        destinos_1: [],
+        instrucciones_adicionales_1: '',
+        fecha_recepcion_2: '',
+        destino_2: '',
+        destinos_2: [],
+        instrucciones_adicionales_2: '',
+        fecha_recepcion_3: '',
+        destino_3: '',
+        destinos_3: [],
+        instrucciones_adicionales_3: ''
+      });
     } catch (error) {
       console.error('Error al guardar:', error);
       toast.error('Error al guardar la hoja de ruta');
@@ -207,21 +279,21 @@ const NuevaHojaRuta: React.FC = () => {
   };
 
   return (
-  <div className="min-h-screen bg-gray-50 p-6 text-gray-900">
+  <div className="min-h-screen bg-gradient-to-br from-[var(--color-vino)] via-[var(--color-vino-oscuro)] to-[var(--color-vino)] p-6 text-white" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,0.03) 0%, transparent 50%)'}}>
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] rounded-lg shadow-lg backdrop-blur-sm p-6 mb-6">
           <div className="flex items-center justify-between">
-            <button onClick={() => navigate('/dashboard')} className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-900">
-              <VolverIcon width={20} height={20} className="mr-2" />
+            <button onClick={() => navigate('/dashboard')} className="flex items-center px-4 py-2 text-white/80 hover:text-white bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] rounded-lg transition-all">
+              <VolverIcon width={20} height={20} className="mr-2" fill="currentColor" />
               Volver al Dashboard
             </button>
             <div className="flex items-center space-x-4">
               {showPreview && (
-                <button onClick={handlePrint} className="px-4 py-2 bg-red-600 text-white rounded-lg">
+                <button onClick={handlePrint} className="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white border border-slate-500 hover:border-slate-400 rounded-lg transition-all duration-200 font-medium">
                   Descargar PDF
                 </button>
               )}
-              <button onClick={() => setShowPreview(!showPreview)} className="px-4 py-2 bg-green-600 text-white rounded-lg">
+              <button onClick={() => setShowPreview(!showPreview)} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-slate-500 rounded-lg transition-all duration-200 font-medium">
                 {showPreview ? 'Editar' : 'Vista Previa'}
               </button>
             </div>
@@ -229,62 +301,118 @@ const NuevaHojaRuta: React.FC = () => {
         </div>
 
         {!showPreview ? (
-          <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.12)] rounded-lg shadow-lg backdrop-blur-sm p-6">
             <h1 className="text-2xl font-bold mb-6">Nueva Hoja de Ruta</h1>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Número H.R. *</label>
-                  <input type="text" name="numero_hr" value={formData.numero_hr} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="text" name="numero_hr" value={formData.numero_hr} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Nombre del Solicitante *</label>
-                  <input type="text" name="nombre_solicitante" value={formData.nombre_solicitante} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="text" name="nombre_solicitante" value={formData.nombre_solicitante} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Teléfono Celular *</label>
-                  <input type="tel" name="telefono_celular" value={formData.telefono_celular} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="tel" name="telefono_celular" value={formData.telefono_celular} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Prioridad *</label>
-                  <select name="prioridad" value={formData.prioridad} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                    <option value="">Seleccionar</option>
+                  <select name="prioridad" value={formData.prioridad} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&>option]:bg-slate-800 [&>option]:text-white">
+                    <option value="" className="text-white/70">Seleccionar</option>
                     <option value="urgente">Urgente</option>
                     <option value="prioritario">Prioritario</option>
                     <option value="rutinario">Rutinario</option>
                     <option value="otros">Otros</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Estado Inicial *</label>
+                  <select name="estado" value={formData.estado} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&>option]:bg-slate-800 [&>option]:text-white">
+                    <option value="" className="text-white/70">Seleccionar</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="enviada">Enviada</option>
+                    <option value="en_proceso">En Proceso</option>
+                    <option value="finalizada">Finalizada</option>
+                    <option value="archivada">Archivada</option>
+                  </select>
+                  <p className="text-xs text-white/60 mt-1">Estado en que se registra inicialmente la hoja de ruta</p>
+                </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium mb-2">Referencia *</label>
-                  <textarea name="referencia" value={formData.referencia} onChange={handleInputChange} required rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <textarea name="referencia" value={formData.referencia} onChange={handleInputChange} required rows={3} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Procedencia *</label>
-                  <input type="text" name="procedencia" value={formData.procedencia} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="text" name="procedencia" value={formData.procedencia} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Fecha Límite *</label>
-                  <input type="date" name="fecha_limite" value={formData.fecha_limite} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
-                  <p className="text-xs text-gray-500 mt-1">Fecha máxima para dar cumplimiento a esta hoja de ruta</p>
+                  <input type="date" name="fecha_limite" value={formData.fecha_limite} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert" />
+                  <p className="text-xs text-white/60 mt-1">Fecha máxima para dar cumplimiento a esta hoja de ruta</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Fecha Ingreso *</label>
-                  <input type="date" name="fecha_ingreso" value={formData.fecha_ingreso} onChange={handleInputChange} required className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="date" name="fecha_ingreso" value={formData.fecha_ingreso} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Cite</label>
-                  <input type="text" name="cite" value={formData.cite} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="text" name="cite" value={formData.cite} onChange={handleInputChange} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Número Fojas</label>
-                  <input type="number" name="numero_fojas" value={formData.numero_fojas} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                  <input type="number" name="numero_fojas" value={formData.numero_fojas} onChange={handleInputChange} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                 </div>
               </div>
 
               <div className="mt-6">
                 <label className="block text-sm font-medium mb-2">Destino</label>
-                <textarea name="destino_principal" value={formData.destino_principal} onChange={handleInputChange} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Escriba el destino principal..." />
+                <div className="space-y-2">
+                  <select 
+                    value={formData.destino_principal === 'otro' ? 'otro' : formData.destino_principal} 
+                    onChange={(e) => {
+                      if (e.target.value === 'otro') {
+                        setFormData(prev => ({ ...prev, destino_principal: 'otro' }));
+                        setMostrarDestinoPrincipalPersonalizado(true);
+                      } else {
+                        setFormData(prev => ({ ...prev, destino_principal: e.target.value }));
+                        setMostrarDestinoPrincipalPersonalizado(false);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                  >
+                    <option value="">Seleccionar destino...</option>
+                    {destinosDisponibles
+                      .filter(destino => destino.tipo === 'centro_acogida')
+                      .map(destino => (
+                        <option key={destino.id} value={destino.nombre} className="bg-gray-800 text-white">
+                          {destino.nombre}
+                        </option>
+                      ))}
+                    {destinosDisponibles
+                      .filter(destino => destino.tipo === 'direccion')
+                      .map(destino => (
+                        <option key={destino.id} value={destino.nombre} className="bg-gray-800 text-white">
+                          {destino.nombre}
+                        </option>
+                      ))}
+                    <option value="otro" className="bg-blue-800 text-white">✏️ Escribir otro destino</option>
+                  </select>
+                  
+                  {mostrarDestinoPrincipalPersonalizado && (
+                    <textarea 
+                      value={destinoPrincipalPersonalizado}
+                      onChange={(e) => {
+                        setDestinoPrincipalPersonalizado(e.target.value);
+                        setFormData(prev => ({ ...prev, destino_principal: e.target.value }));
+                      }}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                      placeholder="Escriba el destino personalizado..."
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Sección principal de opciones de destino e instrucciones */}
@@ -307,7 +435,7 @@ const NuevaHojaRuta: React.FC = () => {
                     <div className="pl-4">
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales</label>
-                        <textarea name="instrucciones_adicionales" value={formData.instrucciones_adicionales} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Escriba las instrucciones adicionales..." />
+                        <textarea name="instrucciones_adicionales" value={formData.instrucciones_adicionales} onChange={handleInputChange} rows={8} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" placeholder="Escriba las instrucciones adicionales..." />
                       </div>
                     </div>
                   </div>
@@ -343,16 +471,52 @@ const NuevaHojaRuta: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium mb-2">Fecha de Recepción 1</label>
-                          <input type="date" name="fecha_recepcion_1" value={formData.fecha_recepcion_1} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <input type="date" name="fecha_recepcion_1" value={formData.fecha_recepcion_1} onChange={handleInputChange} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert" />
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Destino 1</label>
-                          <input type="text" name="destino_1" value={formData.destino_1} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <select 
+                            name="destino_1" 
+                            value={mostrarDestinoPersonalizado1 ? 'otro' : formData.destino_1} 
+                            onChange={(e) => {
+                              if (e.target.value === 'otro') {
+                                setMostrarDestinoPersonalizado1(true);
+                                setFormData(prev => ({ ...prev, destino_1: '' }));
+                              } else {
+                                setMostrarDestinoPersonalizado1(false);
+                                setDestinoPersonalizado1('');
+                                setFormData(prev => ({ ...prev, destino_1: e.target.value }));
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                          >
+                            <option value="" className="text-gray-800">Seleccionar destino...</option>
+                            {destinosDisponibles.map(destino => (
+                              <option key={destino.id} value={destino.nombre} className="text-gray-800">
+                                {destino.nombre}
+                              </option>
+                            ))}
+                            <option value="otro" className="text-gray-800">✏️ Escribir otro destino</option>
+                          </select>
+                          
+                          {mostrarDestinoPersonalizado1 && (
+                            <input
+                              type="text"
+                              value={destinoPersonalizado1}
+                              onChange={(e) => {
+                                setDestinoPersonalizado1(e.target.value);
+                                setFormData(prev => ({ ...prev, destino_1: e.target.value }));
+                              }}
+                              placeholder="Escribir destino personalizado..."
+                              className="w-full mt-2 px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                              autoFocus
+                            />
+                          )}
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 1</label>
-                        <textarea name="instrucciones_adicionales_1" value={formData.instrucciones_adicionales_1} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_1" value={formData.instrucciones_adicionales_1} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                       </div>
                     </div>
                   </div>
@@ -383,16 +547,53 @@ const NuevaHojaRuta: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium mb-2">Fecha de Recepción 2</label>
-                          <input type="date" name="fecha_recepcion_2" value={formData.fecha_recepcion_2} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <input type="date" name="fecha_recepcion_2" value={formData.fecha_recepcion_2} onChange={handleInputChange} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert" />
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Destino 2</label>
-                          <input type="text" name="destino_2" value={formData.destino_2} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <select 
+                            name="destino_2" 
+                            value={mostrarDestinoPersonalizado2 ? 'otro' : formData.destino_2} 
+                            onChange={(e) => {
+                              if (e.target.value === 'otro') {
+                                setMostrarDestinoPersonalizado2(true);
+                                setFormData(prev => ({ ...prev, destino_2: '' }));
+                              } else {
+                                setMostrarDestinoPersonalizado2(false);
+                                setDestinoPersonalizado2('');
+                                setFormData(prev => ({ ...prev, destino_2: e.target.value }));
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                          >
+                            <option value="" className="text-gray-800">Seleccionar destino...</option>
+                            {destinosDisponibles.map(destino => (
+                              <option key={destino.id} value={destino.nombre} className="text-gray-800">
+                                {destino.nombre}
+                              </option>
+                            ))}
+                            <option value="otro" className="text-gray-800">✏️ Escribir otro destino</option>
+                          </select>
+                          
+                          {mostrarDestinoPersonalizado2 && (
+                            <input
+                              type="text"
+                              value={destinoPersonalizado2}
+                              onChange={(e) => {
+                                setDestinoPersonalizado2(e.target.value);
+                                setFormData(prev => ({ ...prev, destino_2: e.target.value }));
+                              }}
+                              placeholder="Escribir destino personalizado..."
+                              className="w-full mt-2 px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                              autoFocus
+                            />
+                          )}
                         </div>
+                      </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 2</label>
-                        <textarea name="instrucciones_adicionales_2" value={formData.instrucciones_adicionales_2} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_2" value={formData.instrucciones_adicionales_2} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                       </div>
                     </div>
                   </div>
@@ -423,33 +624,68 @@ const NuevaHojaRuta: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                           <label className="block text-sm font-medium mb-2">Fecha de Recepción 3</label>
-                          <input type="date" name="fecha_recepcion_3" value={formData.fecha_recepcion_3} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <input type="date" name="fecha_recepcion_3" value={formData.fecha_recepcion_3} onChange={handleInputChange} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all [&::-webkit-calendar-picker-indicator]:filter-invert" />
                         </div>
                         <div>
                           <label className="block text-sm font-medium mb-2">Destino 3</label>
-                          <input type="text" name="destino_3" value={formData.destino_3} onChange={handleInputChange} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                          <select 
+                            name="destino_3" 
+                            value={mostrarDestinoPersonalizado3 ? 'otro' : formData.destino_3} 
+                            onChange={(e) => {
+                              if (e.target.value === 'otro') {
+                                setMostrarDestinoPersonalizado3(true);
+                                setFormData(prev => ({ ...prev, destino_3: '' }));
+                              } else {
+                                setMostrarDestinoPersonalizado3(false);
+                                setDestinoPersonalizado3('');
+                                setFormData(prev => ({ ...prev, destino_3: e.target.value }));
+                              }
+                            }}
+                            className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                          >
+                            <option value="" className="text-gray-800">Seleccionar destino...</option>
+                            {destinosDisponibles.map(destino => (
+                              <option key={destino.id} value={destino.nombre} className="text-gray-800">
+                                {destino.nombre}
+                              </option>
+                            ))}
+                            <option value="otro" className="text-gray-800">✏️ Escribir otro destino</option>
+                          </select>
+                          
+                          {mostrarDestinoPersonalizado3 && (
+                            <input
+                              type="text"
+                              value={destinoPersonalizado3}
+                              onChange={(e) => {
+                                setDestinoPersonalizado3(e.target.value);
+                                setFormData(prev => ({ ...prev, destino_3: e.target.value }));
+                              }}
+                              placeholder="Escribir destino personalizado..."
+                              className="w-full mt-2 px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all"
+                              autoFocus
+                            />
+                          )}
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium mb-2">Instrucciones Adicionales 3</label>
-                        <textarea name="instrucciones_adicionales_3" value={formData.instrucciones_adicionales_3} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+                        <textarea name="instrucciones_adicionales_3" value={formData.instrucciones_adicionales_3} onChange={handleInputChange} rows={5} className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
               <div className="mt-8 flex justify-end space-x-4">
-                <button type="button" onClick={() => navigate('/dashboard')} className="px-6 py-2 border border-gray-300 rounded-lg">Cancelar</button>
-                <button type="button" onClick={() => setShowPreview(true)} className="flex items-center px-6 py-2 bg-blue-600 text-white rounded-lg">
+                <button type="button" onClick={() => navigate('/dashboard')} className="px-6 py-3 border border-white/40 bg-white/5 hover:bg-white/10 text-white/90 hover:text-white rounded-lg transition-all duration-200 font-medium">Cancelar</button>
+                <button type="button" onClick={() => setShowPreview(true)} className="flex items-center px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white border border-slate-600 hover:border-slate-500 rounded-lg transition-all duration-200 font-medium shadow-sm">
                   <OjoIcon width={16} height={16} fill="white" className="mr-2" />
                   Vista Previa
                 </button>
-                <button type="button" onClick={handlePrint} className="flex items-center px-6 py-2 bg-red-600 text-white rounded-lg">
+                <button type="button" onClick={handlePrint} className="flex items-center px-6 py-3 bg-slate-600 hover:bg-slate-500 text-white border border-slate-500 hover:border-slate-400 rounded-lg transition-all duration-200 font-medium shadow-sm">
                   <PdfIcon width={16} height={16} fill="white" className="mr-2" />
                   Descargar PDF
                 </button>
-                <button type="submit" className="flex items-center px-6 py-2 bg-green-600 text-white rounded-lg">
+                <button type="submit" className="flex items-center px-6 py-3 bg-[var(--color-esmeralda)] hover:bg-[var(--color-esmeralda)]/90 text-white border border-[var(--color-esmeralda)] hover:border-[var(--color-esmeralda)]/80 rounded-lg transition-all duration-200 font-medium shadow-sm">
                   <GuardarIcon width={16} height={16} fill="white" className="mr-2" />
                   Guardar
                 </button>

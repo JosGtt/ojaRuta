@@ -2,6 +2,13 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import NotificationIcon from '../assets/notification';
+import AlertaIcon from '../assets/alerta';
+import CheckIcon from '../assets/Check';
+import X from '../assets/X';
+import DocumentosIcon from '../assets/documentos';
+import CalendarioIcon from '../assets/calendario';
+import RefreshIcon from '../assets/refresh';
 
 interface Notificacion {
   id: number;
@@ -18,10 +25,69 @@ const NotificacionesPage = () => {
   const [loading, setLoading] = useState(true);
   const { token } = useAuth();
 
+  // Obtener notificaciones desde localStorage
+  const getNotificacionesLocales = (): Notificacion[] => {
+    try {
+      const stored = localStorage.getItem('notificaciones_sedeges');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Filtrar notificaciones de la última semana
+        const unaSemanaAtras = new Date();
+        unaSemanaAtras.setDate(unaSemanaAtras.getDate() - 7);
+        
+        return parsed.filter((notif: Notificacion) => 
+          new Date(notif.fecha) > unaSemanaAtras
+        );
+      }
+    } catch (error) {
+      console.error('Error al leer notificaciones del localStorage:', error);
+    }
+    return [];
+  };
+
+  // Guardar notificaciones en localStorage
+  const saveNotificacionesLocales = (notifs: Notificacion[]) => {
+    try {
+      // Filtrar solo las de la última semana antes de guardar
+      const unaSemanaAtras = new Date();
+      unaSemanaAtras.setDate(unaSemanaAtras.getDate() - 7);
+      
+      const notificacionesRecientes = notifs.filter(notif => 
+        new Date(notif.fecha) > unaSemanaAtras
+      );
+      
+      localStorage.setItem('notificaciones_sedeges', JSON.stringify(notificacionesRecientes));
+    } catch (error) {
+      console.error('Error al guardar notificaciones en localStorage:', error);
+    }
+  };
+
+  // Combinar notificaciones del servidor con las locales
+  const combinarNotificaciones = (nuevasNotifs: Notificacion[], locales: Notificacion[]) => {
+    const combined = [...nuevasNotifs];
+    
+    // Añadir notificaciones leídas que no estén en las nuevas
+    locales.forEach(localNotif => {
+      if (localNotif.leida && !combined.find(n => n.id === localNotif.id)) {
+        combined.push(localNotif);
+      }
+    });
+    
+    // Actualizar estado de leídas para notificaciones existentes
+    return combined.map(notif => {
+      const localVersion = locales.find(l => l.id === notif.id);
+      return localVersion && localVersion.leida ? { ...notif, leida: true } : notif;
+    });
+  };
+
   // Cargar notificaciones
   const fetchNotificaciones = async () => {
     try {
       setLoading(true);
+      
+      // Obtener notificaciones locales primero
+      const notificacionesLocales = getNotificacionesLocales();
+      
       const response = await axios.get('http://localhost:3001/api/hojas-ruta/dashboard/tiempo-real', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -34,12 +100,21 @@ const NotificacionesPage = () => {
           fecha: notif.fecha || notif.created_at || new Date().toISOString(),
           leida: notif.leida || false
         }));
-        setNotificaciones(notificacionesFormateadas);
+        
+        // Combinar con notificaciones locales
+        const notificacionesCombinadas = combinarNotificaciones(notificacionesFormateadas, notificacionesLocales);
+        setNotificaciones(notificacionesCombinadas);
+        saveNotificacionesLocales(notificacionesCombinadas);
+      } else {
+        // Si no hay datos del servidor, usar solo las locales
+        setNotificaciones(notificacionesLocales);
       }
     } catch (error) {
       console.error('Error al cargar notificaciones:', error);
-      // Datos de ejemplo mientras se conecta el backend
-      setNotificaciones([
+      
+      // En caso de error, usar notificaciones locales + datos de ejemplo
+      const notificacionesLocales = getNotificacionesLocales();
+      const datosEjemplo: Notificacion[] = [
         {
           id: 1,
           mensaje: "Nueva hoja de ruta HR-2025-001 creada y requiere atención inmediata",
@@ -60,15 +135,12 @@ const NotificacionesPage = () => {
           tipo: 'success',
           fecha: new Date(Date.now() - 172800000).toISOString(),
           leida: true
-        },
-        {
-          id: 4,
-          mensaje: "Recordatorio: Revisar hojas de ruta pendientes de esta semana",
-          tipo: 'info',
-          fecha: new Date(Date.now() - 259200000).toISOString(),
-          leida: true
         }
-      ]);
+      ];
+      
+      const notificacionesCombinadas = combinarNotificaciones(datosEjemplo, notificacionesLocales);
+      setNotificaciones(notificacionesCombinadas);
+      saveNotificacionesLocales(notificacionesCombinadas);
     } finally {
       setLoading(false);
     }
@@ -85,15 +157,20 @@ const NotificacionesPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setNotificaciones(prev => prev.map(notif => 
+      const nuevasNotificaciones = notificaciones.map(notif => 
         notif.id === notifId ? { ...notif, leida: true } : notif
-      ));
+      );
+      
+      setNotificaciones(nuevasNotificaciones);
+      saveNotificacionesLocales(nuevasNotificaciones);
       toast.success('Notificación marcada como leída');
     } catch (error) {
       // Fallback local
-      setNotificaciones(prev => prev.map(notif => 
+      const nuevasNotificaciones = notificaciones.map(notif => 
         notif.id === notifId ? { ...notif, leida: true } : notif
-      ));
+      );
+      setNotificaciones(nuevasNotificaciones);
+      saveNotificacionesLocales(nuevasNotificaciones);
     }
   };
 
@@ -104,11 +181,15 @@ const NotificacionesPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setNotificaciones(prev => prev.map(notif => ({ ...notif, leida: true })));
+      const nuevasNotificaciones = notificaciones.map(notif => ({ ...notif, leida: true }));
+      setNotificaciones(nuevasNotificaciones);
+      saveNotificacionesLocales(nuevasNotificaciones);
       toast.success('Todas las notificaciones marcadas como leídas');
     } catch (error) {
       // Fallback local
-      setNotificaciones(prev => prev.map(notif => ({ ...notif, leida: true })));
+      const nuevasNotificaciones = notificaciones.map(notif => ({ ...notif, leida: true }));
+      setNotificaciones(nuevasNotificaciones);
+      saveNotificacionesLocales(nuevasNotificaciones);
       toast.success('Todas las notificaciones marcadas como leídas');
     }
   };
@@ -123,12 +204,12 @@ const NotificacionesPage = () => {
   });
 
   // Obtener icono según tipo
-  const obtenerIcono = (tipo: string) => {
+  const getIconoTipo = (tipo: string) => {
     switch (tipo) {
-      case 'warning': return '⚠️';
-      case 'error': return '❌';
-      case 'success': return '✅';
-      default: return '🔔';
+      case 'warning': return <AlertaIcon width={20} height={20} fill="rgb(251 146 60)" />;
+      case 'error': return <X width={20} height={20} fill="rgb(239 68 68)" />;
+      case 'success': return <CheckIcon width={20} height={20} fill="rgb(34 197 94)" />;
+      default: return <NotificationIcon width={20} height={20} fill="rgb(59 130 246)" />;
     }
   };
 
@@ -150,11 +231,20 @@ const NotificacionesPage = () => {
       <div className="bg-gradient-to-r from-[var(--color-vino)] to-[var(--color-vino-oscuro)] rounded-3xl p-8 mb-6 text-white shadow-2xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">📬 Centro de Notificaciones</h1>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+              <NotificationIcon width={32} height={32} fill="white" />
+              Centro de Notificaciones
+            </h1>
             <p className="text-white/90">Mantente al día con todas las actualizaciones del sistema</p>
+            <p className="text-white/60 text-xs mt-1 flex items-center gap-2">
+              <CalendarioIcon width={14} height={14} fill="currentColor" />
+              Las notificaciones leídas se conservan por 7 días
+            </p>
           </div>
           <div className="text-right">
-            <div className="text-4xl mb-2">🔔</div>
+            <div className="mb-2">
+              <NotificationIcon width={48} height={48} fill="rgb(148 163 184)" />
+            </div>
             {noLeidasCount > 0 && (
               <span className="bg-red-500 text-white text-xs px-3 py-1 rounded-full">
                 {noLeidasCount} nuevas
@@ -172,7 +262,7 @@ const NotificacionesPage = () => {
               <p className="text-sm text-white/70">Total</p>
               <p className="text-2xl font-bold">{notificaciones.length}</p>
             </div>
-            <span className="text-2xl">📊</span>
+            <DocumentosIcon width={24} height={24} fill="white" />
           </div>
         </div>
         
@@ -182,7 +272,7 @@ const NotificacionesPage = () => {
               <p className="text-sm text-white/70">No leídas</p>
               <p className="text-2xl font-bold text-yellow-400">{noLeidasCount}</p>
             </div>
-            <span className="text-2xl">🔴</span>
+            <AlertaIcon width={24} height={24} fill="white" />
           </div>
         </div>
         
@@ -192,7 +282,7 @@ const NotificacionesPage = () => {
               <p className="text-sm text-white/70">Leídas</p>
               <p className="text-2xl font-bold text-green-400">{notificaciones.length - noLeidasCount}</p>
             </div>
-            <span className="text-2xl">✅</span>
+            <CheckIcon width={24} height={24} fill="white" />
           </div>
         </div>
         
@@ -245,7 +335,8 @@ const NotificacionesPage = () => {
             disabled={loading}
             className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-all disabled:opacity-50"
           >
-            {loading ? '🔄' : '🔄'} Actualizar
+            <RefreshIcon width={16} height={16} fill="white" className={loading ? 'animate-spin' : ''} />
+            <span className="ml-2">Actualizar</span>
           </button>
         </div>
       </div>
@@ -259,7 +350,9 @@ const NotificacionesPage = () => {
           </div>
         ) : notificacionesFiltradas.length === 0 ? (
           <div className="text-center py-12 text-white/60">
-            <span className="text-4xl mb-4 block">📭</span>
+            <div className="mb-4">
+              <NotificationIcon width={48} height={48} fill="rgb(148 163 184)" />
+            </div>
             <p className="text-lg">No hay notificaciones que mostrar</p>
             <p className="text-sm">¡Estás al día con todo!</p>
           </div>
@@ -275,7 +368,7 @@ const NotificacionesPage = () => {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1">
-                    <span className="text-xl">{obtenerIcono(notif.tipo)}</span>
+                    <div className="text-xl">{getIconoTipo(notif.tipo)}</div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-white ${notif.leida ? 'text-white/70' : 'text-white font-medium'}`}>
                         {notif.mensaje}

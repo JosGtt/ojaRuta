@@ -5,6 +5,7 @@ import HistorialIcon from '../assets/historial';
 import CheckIcon from '../assets/Check1';
 import EditarIcon from '../assets/editar';
 import EnviarIcon from '../assets/enviar';
+import DocumentosIcon from '../assets/documentos';
 
 interface HistorialItem {
   id: number;
@@ -224,7 +225,8 @@ const HistorialPage = () => {
           style={{ background: 'var(--color-esmeralda)' }}
           className="px-8 py-3 rounded-sm text-white font-medium hover:opacity-90 transition-opacity"
         >
-          📄 Ver Historial Completo
+          <DocumentosIcon width={18} height={18} fill="white" className="mr-2" />
+          Ver Historial Completo
         </button>
       </div>
     </div>

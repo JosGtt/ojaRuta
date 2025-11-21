@@ -16,6 +16,8 @@ interface HojaRuta {
   numero_fojas?: number;
   prioridad: string;
   estado: string;
+  ubicacion_actual?: string;
+  responsable_actual?: string;
 }
 
 interface RegistrosPageCleanProps {
@@ -71,6 +73,7 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Referencia</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Procedencia</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Prioridad</th>
+                    <th className="p-3 text-left text-sm font-semibold text-slate-300">Ubicación Actual</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Estado</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Fecha Ingreso</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Acciones</th>
@@ -85,6 +88,21 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
                       <td className="p-3 border-b border-white/6 text-white">{hr.referencia}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.procedencia}</td>
                       <td className="p-3 border-b border-white/6 text-white capitalize">{hr.prioridad}</td>
+                      <td className="p-3 border-b border-white/6">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium ${
+                            hr.ubicacion_actual 
+                              ? (hr.ubicacion_actual.toLowerCase().includes('sedeges') 
+                                 ? 'bg-slate-700 text-slate-200' 
+                                 : 'bg-blue-800 text-blue-200')
+                              : 'bg-red-800 text-red-200'
+                          }`}>
+                            {hr.ubicacion_actual ? (
+                              hr.ubicacion_actual.toLowerCase().includes('sedeges') ? 'SEDEGES' : hr.ubicacion_actual.toUpperCase()
+                            ) : 'Sin definir'}
+                          </span>
+                        </div>
+                      </td>
                       <td className="p-3 border-b border-white/6 text-white capitalize">{hr.estado}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.fecha_ingreso?.slice(0,10)}</td>
                       <td className="p-3 border-b border-white/6">

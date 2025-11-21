@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-// Project SVG icons 
+
+ // Project SVG icons 
 import CheckIcon from '../assets/Check1';
 import PrioridadIcon from '../assets/prioridad';
 import RelojIcon from '../assets/reloj';
@@ -57,15 +58,20 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
   const [hojasRecientes, setHojasRecientes] = useState<HojaRutaReciente[]>([]);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isAutoUpdate = false) => {
     if (!token) {
       console.log('❌ No hay token, no se puede cargar el dashboard');
       return;
     }
     
     try {
-      setLoading(true);
+      // Solo mostrar loading en carga inicial, no en auto-updates
+      if (!isAutoUpdate) {
+        setLoading(true);
+      }
+      
       console.log('🔄 INICIO fetchDashboardData - Conectando al dashboard en tiempo real...');
       console.log('🔑 Token disponible:', token ? 'SÍ' : 'NO');
       
@@ -84,56 +90,115 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
         total: todasLasHojas.length,
         pendientes: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'pendiente' || !h.estado_cumplimiento).length,
         en_proceso: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'en_proceso').length,
-        completadas: todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'completado').length,
+        completadas: todasLasHojas.filter((h: any) => 
+          h.estado_cumplimiento === 'completado' || 
+          h.estado === 'archivada' || 
+          h.estado === 'finalizada'
+        ).length,
         vencidas: todasLasHojas.filter((h: any) => h.dias_para_vencimiento < 0).length
       };
       
-      setEstadisticas(stats);
-      setHojasRecientes(todasLasHojas.slice(0, 5));
+      console.log('📊 Estadísticas calculadas:', stats);
+      console.log('📋 Detalle hojas por estado_cumplimiento:');
+      console.log('- Total hojas:', todasLasHojas.length);
       
-      // Notificaciones de ejemplo
-      setNotificaciones([
-        {
-          id: 1,
-          mensaje: `📊 Dashboard actualizado. ${todasLasHojas.length} hojas de ruta en el sistema.`,
-          fecha: new Date().toISOString(),
-          leida: false
-        },
-        {
-          id: 2,
-          mensaje: '✅ Sistema funcionando correctamente',
-          fecha: new Date().toISOString(),
-          leida: true
-        }
-      ]);
+      // Ver TODAS las hojas y sus estados
+      todasLasHojas.forEach((hoja: any, index: number) => {
+        console.log(`📄 Hoja ${index + 1}:`, {
+          id: hoja.id,
+          numero_hoja: hoja.numero_hoja,
+          estado_cumplimiento: hoja.estado_cumplimiento,
+          estado: hoja.estado,
+          fecha_completado: hoja.fecha_completado
+        });
+      });
+      
+      console.log('- Pendientes:', todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'pendiente' || !h.estado_cumplimiento));
+      console.log('- En proceso:', todasLasHojas.filter((h: any) => h.estado_cumplimiento === 'en_proceso'));
+      console.log('- Completadas:', todasLasHojas.filter((h: any) => 
+        h.estado_cumplimiento === 'completado' || 
+        h.estado === 'archivada' || 
+        h.estado === 'finalizada'
+      ));
+      console.log('🎯 CONTADOR FINAL - Completadas encontradas:', stats.completadas);
+      
+      setEstadisticas(stats);
+      
+      // Para "hojas recientes" del dashboard, mostrar solo las activas (no completadas)
+      const hojasActivas = todasLasHojas.filter((h: any) => 
+        h.estado_cumplimiento !== 'completado' && 
+        h.estado !== 'finalizada' && 
+        h.estado !== 'archivada'
+      );
+      setHojasRecientes(hojasActivas.slice(0, 5));
+      setUltimaActualizacion(new Date());
+      
+      // Solo actualizar notificaciones en carga inicial, no en auto-updates
+      if (!isAutoUpdate) {
+        setNotificaciones([
+          {
+            id: 1,
+            mensaje: `Sistema SEDEGES conectado. ${todasLasHojas.length} hojas de ruta en el sistema.`,
+            fecha: new Date().toISOString(),
+            leida: false
+          },
+          {
+            id: 2,
+            mensaje: 'Sistema funcionando correctamente',
+            fecha: new Date().toISOString(),
+            leida: true
+          }
+        ]);
+      }
       
     } catch (error) {
       console.error('❌ Error en fetchDashboardData:', error);
       
-      // Datos vacíos si hay error
-      setEstadisticas({ total: 0, pendientes: 0, en_proceso: 0, completadas: 0, vencidas: 0 });
-      setNotificaciones([{
-        id: 1,
-        mensaje: '❌ Error de conexión. Revisa que el backend esté funcionando.',
-        fecha: new Date().toISOString(),
-        leida: false
-      }]);
+      // Solo mostrar errores en carga inicial
+      if (!isAutoUpdate) {
+        setEstadisticas({ total: 0, pendientes: 0, en_proceso: 0, completadas: 0, vencidas: 0 });
+        setNotificaciones([{
+          id: 1,
+          mensaje: 'Error de conexión. Revisa que el backend esté funcionando.',
+          fecha: new Date().toISOString(),
+          leida: false
+        }]);
+      }
       
     } finally {
-      setLoading(false);
+      if (!isAutoUpdate) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false); // Carga inicial con loading
   }, [token]);
 
-  // Actualización automática cada 30 segundos
+  // Listener para actualizaciones de estado
+  useEffect(() => {
+    const handleEstadoActualizado = (event: any) => {
+      console.log('🔔 Estado actualizado, refrescando dashboard inmediatamente...', event.detail);
+      // Refresh inmediato sin delay
+      setTimeout(() => {
+        fetchDashboardData(true);
+      }, 100); // Pequeño delay para que la BD se actualice
+    };
+    
+    window.addEventListener('estadoActualizado', handleEstadoActualizado);
+    
+    return () => {
+      window.removeEventListener('estadoActualizado', handleEstadoActualizado);
+    };
+  }, [token]); // Agregar token como dependencia
+
+  // Actualización automática cada 2 minutos (menos agresiva)
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log('🔄 Actualizando dashboard automáticamente...');
-      fetchDashboardData();
-    }, 30000);
+      console.log('🔄 Actualización automática silenciosa...');
+      fetchDashboardData(true); // Update silencioso sin loading
+    }, 120000); // 2 minutos en lugar de 30 segundos
     
     return () => {
       clearInterval(interval);
@@ -162,13 +227,25 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
             <p className="text-white/70 text-lg">Sistema de Gestión Documental - SEDEGES La Paz</p>
           </div>
           <div className="text-right">
-            <div className="text-white/60 text-sm">Actualizado el</div>
-            <div className="text-white font-medium">{new Date().toLocaleDateString('es-BO', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}</div>
+            <div className="text-white/60 text-sm">
+              {ultimaActualizacion ? 'Última actualización' : 'Actualizado el'}
+            </div>
+            <div className="text-white font-medium">
+              {ultimaActualizacion 
+                ? ultimaActualizacion.toLocaleDateString('es-BO', { 
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    day: '2-digit',
+                    month: 'short'
+                  })
+                : new Date().toLocaleDateString('es-BO', { 
+                    weekday: 'long', 
+                    year: 'numeric',
+                    month: 'long', 
+                    day: 'numeric' 
+                  })
+              }
+            </div>
           </div>
         </div>
       </div>
@@ -373,45 +450,6 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
             >
               Ver Todas las Notificaciones
             </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Estadísticas Adicionales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Productividad */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
-          <div className="text-center">
-            <div className="text-white/70 text-sm font-medium mb-2">PRODUCTIVIDAD</div>
-            <div className="text-2xl font-bold text-blue-400 mb-1">87%</div>
-            <div className="text-white/50 text-xs">Eficiencia promedio</div>
-          </div>
-        </div>
-
-        {/* Tiempo Promedio */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
-          <div className="text-center">
-            <div className="text-white/70 text-sm font-medium mb-2">TIEMPO PROMEDIO</div>
-            <div className="text-2xl font-bold text-purple-400 mb-1">3.2</div>
-            <div className="text-white/50 text-xs">Días por documento</div>
-          </div>
-        </div>
-
-        {/* Documentos Hoy */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
-          <div className="text-center">
-            <div className="text-white/70 text-sm font-medium mb-2">HOY</div>
-            <div className="text-2xl font-bold text-green-400 mb-1">{estadisticas.pendientes}</div>
-            <div className="text-white/50 text-xs">Documentos procesados</div>
-          </div>
-        </div>
-
-        {/* Meta Mensual */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
-          <div className="text-center">
-            <div className="text-white/70 text-sm font-medium mb-2">META MENSUAL</div>
-            <div className="text-2xl font-bold text-orange-400 mb-1">74%</div>
-            <div className="text-white/50 text-xs">Progreso actual</div>
           </div>
         </div>
       </div>

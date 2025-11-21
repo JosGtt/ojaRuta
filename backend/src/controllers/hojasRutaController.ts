@@ -23,10 +23,21 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
       fecha_recepcion_3, destino_3, destinos_3, instrucciones_adicionales_3
     };
 
+    // Mapear estado del frontend a estado_cumplimiento del backend
+    const mapaEstadoCumplimiento: { [key: string]: string } = {
+      'pendiente': 'pendiente',
+      'enviada': 'en_proceso',
+      'en_proceso': 'en_proceso', 
+      'finalizada': 'completado',
+      'archivada': 'completado'
+    };
+    
+    const estado_cumplimiento = mapaEstadoCumplimiento[estado] || 'pendiente';
+
     const result = await pool.query(
-      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
-      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, 'pendiente']
+      `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento, ubicacion_actual, responsable_actual)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
+      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento, 'SEDEGES', 'Sistema SEDEGES']
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -67,9 +78,9 @@ export const listarHojasRuta = async (req: Request, res: Response) => {
       params.push(estado_cumplimiento);
     }
 
-    // Por defecto, no incluir las completadas a menos que se especifique
-    if (incluir_completadas !== 'true') {
-      sqlQuery += ` AND estado_cumplimiento != 'completado'`;
+    // Opción para excluir completadas si se especifica explícitamente
+    if (incluir_completadas === 'false') {
+      sqlQuery += ` AND estado_cumplimiento != 'completado' AND estado != 'finalizada' AND estado != 'archivada'`;
     }
 
     sqlQuery += ` ORDER BY 
@@ -92,23 +103,173 @@ export const listarHojasRuta = async (req: Request, res: Response) => {
 export const obtenerHojaRuta = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    console.log('🔍 Obteniendo hoja de ruta con ID:', id);
+    
     const result = await pool.query('SELECT * FROM hojas_ruta WHERE id = $1', [id]);
+    
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
+      console.log('❌ Hoja de ruta no encontrada con ID:', id);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Hoja de ruta no encontrada' 
+      });
     }
+    
     const hoja = result.rows[0];
+    
+    console.log('✅ Hoja de ruta encontrada:', {
+      id: hoja.id,
+      numero_hr: hoja.numero_hr,
+      referencia: hoja.referencia,
+      estado: hoja.estado
+    });
+    
     // Combinar los campos principales y los detalles (si existen)
     let fullData = { ...hoja };
     if (hoja.detalles) {
       try {
         // detalles ya es objeto si viene de pg
         fullData = { ...hoja, ...hoja.detalles };
-      } catch {}
+      } catch (error) {
+        console.warn('Error al procesar detalles:', error);
+      }
     }
-    res.json(fullData);
+    
+    res.json({ 
+      success: true, 
+      hoja: fullData 
+    });
   } catch (error) {
-    console.error('Error al obtener hoja de ruta:', error);
-    res.status(500).json({ error: 'Error al obtener hoja de ruta' });
+    console.error('❌ Error al obtener hoja de ruta:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor al obtener hoja de ruta' 
+    });
+  }
+};
+
+// Actualizar hoja de ruta completa
+export const actualizarHojaRuta = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    console.log('🔄 Actualizando hoja de ruta ID:', id);
+    console.log('📝 Datos a actualizar:', JSON.stringify(updateData, null, 2));
+    
+    // Separar campos principales de los detalles
+    const {
+      // Campos principales
+      numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, 
+      prioridad, estado, observaciones, nombre_solicitante, telefono_celular,
+      // Todo lo demás va a detalles
+      ...detalles
+    } = updateData;
+    
+    // Construir query dinámicamente
+    const fieldsToUpdate: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+    
+    // Agregar campos principales si están presentes
+    if (numero_hr !== undefined) {
+      fieldsToUpdate.push(`numero_hr = $${paramCount++}`);
+      values.push(numero_hr);
+    }
+    if (referencia !== undefined) {
+      fieldsToUpdate.push(`referencia = $${paramCount++}`);
+      values.push(referencia);
+    }
+    if (procedencia !== undefined) {
+      fieldsToUpdate.push(`procedencia = $${paramCount++}`);
+      values.push(procedencia);
+    }
+    if (fecha_limite !== undefined) {
+      fieldsToUpdate.push(`fecha_limite = $${paramCount++}`);
+      values.push(fecha_limite);
+    }
+    if (cite !== undefined) {
+      fieldsToUpdate.push(`cite = $${paramCount++}`);
+      values.push(cite);
+    }
+    if (numero_fojas !== undefined) {
+      fieldsToUpdate.push(`numero_fojas = $${paramCount++}`);
+      values.push(numero_fojas);
+    }
+    if (prioridad !== undefined) {
+      fieldsToUpdate.push(`prioridad = $${paramCount++}`);
+      values.push(prioridad);
+    }
+    if (estado !== undefined) {
+      fieldsToUpdate.push(`estado = $${paramCount++}`);
+      values.push(estado);
+    }
+    if (observaciones !== undefined) {
+      fieldsToUpdate.push(`observaciones = $${paramCount++}`);
+      values.push(observaciones);
+    }
+    if (nombre_solicitante !== undefined) {
+      fieldsToUpdate.push(`nombre_solicitante = $${paramCount++}`);
+      values.push(nombre_solicitante);
+    }
+    if (telefono_celular !== undefined) {
+      fieldsToUpdate.push(`telefono_celular = $${paramCount++}`);
+      values.push(telefono_celular);
+    }
+    
+    // Actualizar detalles si hay datos adicionales
+    if (Object.keys(detalles).length > 0) {
+      fieldsToUpdate.push(`detalles = $${paramCount++}`);
+      values.push(detalles);
+    }
+    
+    // Siempre actualizar timestamp
+    fieldsToUpdate.push(`updated_at = CURRENT_TIMESTAMP`);
+    
+    if (fieldsToUpdate.length === 1) { // Solo updated_at
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No hay datos para actualizar' 
+      });
+    }
+    
+    // Agregar ID al final
+    values.push(id);
+    
+    const updateQuery = `
+      UPDATE hojas_ruta 
+      SET ${fieldsToUpdate.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING *
+    `;
+    
+    console.log('📝 Query de actualización:', updateQuery);
+    console.log('📝 Valores:', values);
+    
+    const result = await pool.query(updateQuery, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Hoja de ruta no encontrada' 
+      });
+    }
+    
+    console.log('✅ Hoja de ruta actualizada exitosamente');
+    
+    res.json({ 
+      success: true, 
+      hoja: result.rows[0],
+      message: 'Hoja de ruta actualizada exitosamente'
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al actualizar hoja de ruta:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor' 
+    });
   }
 };
 
@@ -148,28 +309,83 @@ export const marcarCompletada = async (req: Request, res: Response) => {
 export const cambiarEstadoCumplimiento = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { estado_cumplimiento } = req.body;
+    const { estado_cumplimiento, estado } = req.body; // Agregar estado
     
-    if (!['pendiente', 'en_proceso', 'completado', 'vencido'].includes(estado_cumplimiento)) {
-      return res.status(400).json({ error: 'Estado de cumplimiento inválido' });
+    console.log('🎯 === INICIO CAMBIAR ESTADO ===');
+    console.log('📝 URL params - ID:', id);
+    console.log('📝 Request body completo:', JSON.stringify(req.body, null, 2));
+    console.log('📝 estado_cumplimiento:', estado_cumplimiento);
+    console.log('📝 estado:', estado);
+    console.log('📝 Tipo de estado_cumplimiento:', typeof estado_cumplimiento);
+    
+    // Validar estado
+    const estadosValidos = ['pendiente', 'en_proceso', 'completado', 'vencido'];
+    console.log('🔍 Estados válidos:', estadosValidos);
+    console.log('🔍 ¿Estado válido?', estadosValidos.includes(estado_cumplimiento));
+    
+    if (!estado_cumplimiento) {
+      console.log('❌ No se recibió estado_cumplimiento');
+      return res.status(400).json({ error: 'Falta el campo estado_cumplimiento' });
+    }
+    
+    if (!estadosValidos.includes(estado_cumplimiento)) {
+      console.log('❌ Estado inválido recibido:', estado_cumplimiento);
+      return res.status(400).json({ 
+        error: `Estado inválido: "${estado_cumplimiento}". Estados permitidos: ${estadosValidos.join(', ')}` 
+      });
     }
 
-    const result = await pool.query(
-      `UPDATE hojas_ruta 
-       SET estado_cumplimiento = $1,
-           fecha_completado = CASE WHEN $1 = 'completado' THEN CURRENT_TIMESTAMP ELSE NULL END,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $2 RETURNING *`,
-      [estado_cumplimiento, id]
-    );
+    console.log('✅ Validación pasó, ejecutando query...');
+
+    // Actualizar tanto estado_cumplimiento como estado si se proporciona
+    let updateQuery = `UPDATE hojas_ruta 
+                       SET estado_cumplimiento = $1,
+                           updated_at = CURRENT_TIMESTAMP`;
+    let queryParams = [estado_cumplimiento];
+    
+    if (estado) {
+      updateQuery += `, estado = $${queryParams.length + 1}`;
+      queryParams.push(estado);
+    }
+    
+    updateQuery += ` WHERE id = $${queryParams.length + 1} RETURNING *`;
+    queryParams.push(id);
+    
+    console.log('📝 Query final:', updateQuery);
+    console.log('📝 Params:', queryParams);
+    
+    const result = await pool.query(updateQuery, queryParams);
+    
+    // Si es completado, actualizar fecha_completado en una query separada
+    if (estado_cumplimiento === 'completado') {
+      await pool.query(
+        `UPDATE hojas_ruta 
+         SET fecha_completado = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [id]
+      );
+    }
+    
+    console.log('📊 Resultado de la query:', {
+      rowsAffected: result.rowCount,
+      rowsReturned: result.rows.length
+    });
     
     if (result.rows.length === 0) {
+      console.log('❌ Hoja de ruta no encontrada con ID:', id);
       return res.status(404).json({ error: 'Hoja de ruta no encontrada' });
     }
 
+    console.log('✅ Estado actualizado exitosamente:', {
+      id: result.rows[0].id,
+      nuevo_estado: result.rows[0].estado_cumplimiento,
+      fecha_updated: result.rows[0].updated_at
+    });
+    console.log('🎯 === FIN CAMBIAR ESTADO ===');
+    
     res.json(result.rows[0]);
   } catch (error) {
-    console.error('Error al cambiar estado:', error);
+    console.error('❌ Error al cambiar estado:', error);
     res.status(500).json({ error: 'Error al cambiar estado' });
   }
 };
@@ -375,5 +591,38 @@ export const actualizarEstadoHojaRuta = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error al actualizar estado:', error);
     res.status(500).json({ error: 'Error al actualizar el estado' });
+  }
+};
+
+// Obtener lista de destinos/centros
+export const obtenerDestinos = async (req: Request, res: Response) => {
+  try {
+    const { tipo } = req.query; // 'centro_acogida', 'direccion', 'departamento', 'externo', 'all'
+    
+    let query = 'SELECT id, nombre, descripcion, tipo FROM destinos WHERE activo = true';
+    const params: any[] = [];
+    
+    if (tipo && tipo !== 'all') {
+      query += ' AND tipo = $1';
+      params.push(tipo);
+    }
+    
+    query += ' ORDER BY nombre ASC';
+    
+    const result = await pool.query(query, params);
+    
+    console.log('✅ Destinos obtenidos:', result.rows.length);
+    
+    res.json({
+      success: true,
+      destinos: result.rows
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al obtener destinos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener destinos'
+    });
   }
 };
