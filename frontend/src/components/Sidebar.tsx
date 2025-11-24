@@ -15,6 +15,7 @@ const menuItems = [
   { id: 'inicio', icon: <UserIcon width={24} height={24} />, label: "Inicio" },
   { id: 'nueva-hoja', icon: <AñadirIcon width={24} height={24} />, label: "Añadir" },
   { id: 'enviar', icon: <EnviarIcon width={24} height={24} />, label: "Enviar" },
+  { id: 'gestion-envios', icon: <HistorialIcon width={24} height={24} />, label: "Gestión Envíos" },
   { id: 'registros', icon: <RegistrosIcon width={24} height={24} />, label: "Registros" },
   { id: 'historial', icon: <HistorialIcon width={24} height={24} />, label: "Historial" },
   { id: 'notificaciones', icon: <NotificacionIcon width={24} height={24} />, label: "Notificaciones" },

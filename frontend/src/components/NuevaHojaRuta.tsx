@@ -191,7 +191,9 @@ const NuevaHojaRuta: React.FC = () => {
         ...formData,
         estado: formData.estado || 'pendiente', // Usar el estado seleccionado o 'pendiente' por defecto
         observaciones: formData.instrucciones_adicionales,
-        usuario_creador_id: user.id
+        usuario_creador_id: user.id,
+        ubicacion_actual: formData.destino_principal || 'SEDEGES - Sede Central', // Usar destino principal como ubicación inicial
+        responsable_actual: formData.destino_principal ? `Responsable de ${formData.destino_principal}` : 'Sistema SEDEGES'
       };
       await axios.post('http://localhost:3001/api/hojas-ruta', payload, {
         headers: {

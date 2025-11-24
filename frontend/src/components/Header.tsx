@@ -8,7 +8,7 @@ const Header = ({ onUserMenu, user }: { onUserMenu: () => void; user: any }) => 
       <form className="flex-1 max-w-xl mx-6">
         <input
           type="text"
-          placeholder="Buscar..."
+          placeholder="Buscar por H.R., referencia, ubicación, nombre, teléfono..."
           className="w-full px-4 py-2 rounded-2xl bg-(--color-fondo-claro) text-lg text-(--color-gris-oscuro) focus:outline-none focus:ring-2 focus:ring-(--color-vino) shadow"
         />
       </form>

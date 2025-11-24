@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import UsuarioIcon from '../assets/usario';
 import NotificationIcon from '../assets/notification';
@@ -10,7 +10,8 @@ import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
 import ModernDashboard from './ModernDashboard';
 import HojaRutaDetalleView from './HojaRutaDetalleView';
-import EnviarPage from '../pages/EnviarPageNew';
+import EnviarPageReestructurado from '../pages/EnviarPageReestructurado';
+import GestionEnvios from '../pages/GestionEnvios';
 import { useSearch } from '../contexts/SearchContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -27,6 +28,25 @@ const DashboardLayout: React.FC = () => {
 
   // sidebar widths in pixels for tailwind w-64 (256) and w-28 (112)
   const sidebarWidth = expanded ? 256 : 112;
+
+  // Listener para navegación desde HojaRutaDetalle
+  useEffect(() => {
+    const handleNavigate = (event: CustomEvent) => {
+      const { to } = event.detail;
+      console.log('🎯 Evento de navegación recibido:', to);
+      if (to === 'enviar') {
+        setActiveSection('enviar');
+        setSelectedHoja(null); // Limpiar hoja seleccionada
+        console.log('✅ Navegado a sección enviar');
+      }
+    };
+
+    window.addEventListener('navigate', handleNavigate as EventListener);
+    
+    return () => {
+      window.removeEventListener('navigate', handleNavigate as EventListener);
+    };
+  }, []);
 
   // Función para cerrar sesión
   const handleLogout = () => {
@@ -77,7 +97,7 @@ const DashboardLayout: React.FC = () => {
 
               <input
                 type="text"
-                placeholder="Buscar..."
+                placeholder="Buscar por H.R., referencia, ubicación, nombre, teléfono..."
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => {
@@ -129,7 +149,8 @@ const DashboardLayout: React.FC = () => {
             )}
             {activeSection === 'historial' && <HistorialPage />}
             {activeSection === 'notificaciones' && <NotificacionesPage />}
-            {activeSection === 'enviar' && <EnviarPage />}
+            {activeSection === 'enviar' && <EnviarPageReestructurado />}
+            {activeSection === 'gestion-envios' && <GestionEnvios />}
             {activeSection === 'inicio' && <ModernDashboard onNavigate={setActiveSection} />}
           </div>
         </main>

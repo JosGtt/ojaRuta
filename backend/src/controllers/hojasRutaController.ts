@@ -7,7 +7,7 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
     const {
       numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id,
       // Nuevos campos
-      nombre_solicitante, telefono_celular,
+      nombre_solicitante, telefono_celular, ubicacion_actual, responsable_actual,
       // Todos los campos extra del formulario
       destino_principal, destinos, instrucciones_adicionales,
       fecha_recepcion_1, destino_1, destinos_1, instrucciones_adicionales_1,
@@ -23,6 +23,11 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
       fecha_recepcion_3, destino_3, destinos_3, instrucciones_adicionales_3
     };
 
+    console.log('🏗️ === CREANDO HOJA DE RUTA ===');
+    console.log('📋 Ubicación recibida:', ubicacion_actual);
+    console.log('👤 Responsable recibido:', responsable_actual);
+    console.log('🎯 Destino principal:', destino_principal);
+
     // Mapear estado del frontend a estado_cumplimiento del backend
     const mapaEstadoCumplimiento: { [key: string]: string } = {
       'pendiente': 'pendiente',
@@ -34,11 +39,21 @@ export const crearHojaRuta = async (req: Request, res: Response) => {
     
     const estado_cumplimiento = mapaEstadoCumplimiento[estado] || 'pendiente';
 
+    // Usar valores enviados desde frontend o valores por defecto
+    const ubicacionFinal = ubicacion_actual || 'SEDEGES - Sede Central';
+    const responsableFinal = responsable_actual || 'Sistema SEDEGES';
+
+    console.log('📍 Ubicación final:', ubicacionFinal);
+    console.log('👥 Responsable final:', responsableFinal);
+
     const result = await pool.query(
       `INSERT INTO hojas_ruta (numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento, ubicacion_actual, responsable_actual)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING *`,
-      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento, 'SEDEGES', 'Sistema SEDEGES']
+      [numero_hr, referencia, procedencia, fecha_limite, cite, numero_fojas, prioridad, estado, observaciones, usuario_creador_id, nombre_solicitante, telefono_celular, detalles, estado_cumplimiento, ubicacionFinal, responsableFinal]
     );
+
+    console.log('✅ Hoja creada con ubicación:', result.rows[0].ubicacion_actual);
+    
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error al crear hoja de ruta:', error);
@@ -64,11 +79,19 @@ export const listarHojasRuta = async (req: Request, res: Response) => {
     const params: any[] = [];
     let paramCount = 0;
 
-    // Filtro por búsqueda de texto
+    // Filtro por búsqueda de texto - EXPANDIDO
     if (query) {
       paramCount++;
-      sqlQuery += ` AND (numero_hr ILIKE $${paramCount} OR referencia ILIKE $${paramCount})`;
+      sqlQuery += ` AND (
+        numero_hr ILIKE $${paramCount} OR 
+        referencia ILIKE $${paramCount} OR 
+        procedencia ILIKE $${paramCount} OR
+        ubicacion_actual ILIKE $${paramCount} OR
+        nombre_solicitante ILIKE $${paramCount} OR
+        telefono_celular ILIKE $${paramCount}
+      )`;
       params.push(`%${query}%`);
+      console.log(`🔍 Búsqueda expandida por: "${query}" en múltiples campos`);
     }
 
     // Filtro por estado de cumplimiento

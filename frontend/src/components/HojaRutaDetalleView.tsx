@@ -53,8 +53,8 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
     { 
       valor: 'pendiente', 
       nombre: 'Pendiente', 
-      color: 'bg-slate-500 hover:bg-slate-600', 
-      colorDark: 'bg-slate-600',
+      color: 'bg-slate-600 hover:bg-slate-700 border border-slate-400', 
+      colorDark: 'bg-slate-700 border-2 border-slate-400',
       textColor: 'text-slate-600',
       icon: CirculoOffIcon,
       descripcion: 'Documento recibido, esperando procesamiento'
@@ -62,36 +62,36 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
     { 
       valor: 'enviada', 
       nombre: 'Enviada', 
-      color: 'bg-slate-700 hover:bg-slate-800', 
-      colorDark: 'bg-slate-800',
+      color: 'bg-slate-700 hover:bg-slate-800 border border-slate-500', 
+      colorDark: 'bg-slate-800 border-2 border-slate-500',
       textColor: 'text-slate-700',
       icon: SendIcon,
-      descripcion: 'Documento enviado al área correspondiente'
+      descripcion: 'Documento enviado al área correspondiente (puede haber sido actualizado automáticamente desde envíos)'
     },
     { 
       valor: 'en_proceso', 
       nombre: 'En Proceso', 
-      color: 'bg-blue-700 hover:bg-blue-800', 
-      colorDark: 'bg-blue-800',
-      textColor: 'text-blue-700',
+      color: 'bg-indigo-600 hover:bg-indigo-700 border border-indigo-400', 
+      colorDark: 'bg-indigo-700 border-2 border-indigo-400',
+      textColor: 'text-indigo-600',
       icon: CirculoOnIcon,
       descripcion: 'Documento en proceso de trabajo'
     },
     { 
       valor: 'finalizada', 
       nombre: 'Finalizada', 
-      color: 'bg-emerald-700 hover:bg-emerald-800', 
-      colorDark: 'bg-emerald-800',
-      textColor: 'text-emerald-700',
+      color: 'bg-emerald-600 hover:bg-emerald-700 border border-emerald-400', 
+      colorDark: 'bg-emerald-700 border-2 border-emerald-400',
+      textColor: 'text-emerald-600',
       icon: CheckIcon,
       descripcion: 'Proceso completado exitosamente'
     },
     { 
       valor: 'archivada', 
       nombre: 'Archivada', 
-      color: 'bg-slate-600 hover:bg-slate-700', 
-      colorDark: 'bg-slate-700',
-      textColor: 'text-slate-600',
+      color: 'bg-stone-600 hover:bg-stone-700 border border-stone-400', 
+      colorDark: 'bg-stone-700 border-2 border-stone-400',
+      textColor: 'text-stone-600',
       icon: ArchivoIcon,
       descripcion: 'Documento archivado permanentemente'
     }
@@ -544,6 +544,13 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
     try {
       setActualizandoEstado(true);
       
+      console.log('🏢 CAMBIANDO UBICACIÓN:', {
+        ubicacionActual: hojaCompleta.ubicacion_actual,
+        nuevaUbicacion: nuevaUbicacion,
+        responsable: responsable,
+        hojaId: hojaCompleta.id
+      });
+      
       const response = await axios.patch(
         `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/ubicacion`,
         { 
@@ -557,6 +564,8 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
           } 
         }
       );
+      
+      console.log('✅ RESPUESTA DEL BACKEND:', response.data);
       
       setHojaCompleta({ 
         ...hojaCompleta, 
@@ -669,13 +678,28 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
           </div>
         </div>
         
-        <button onClick={handleDescargarPDF} className="bg-linear-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
-          <DescargarIcon width={20} height={20} fill="white" />
-          <div className="flex flex-col items-start">
-            <span className="font-semibold text-sm">Descargar PDF</span>
-            <span className="text-xs opacity-90">Generar archivo</span>
-          </div>
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Descargar PDF */}
+          <button 
+            onClick={handleDescargarPDF}
+            className="bg-slate-600 hover:bg-slate-700 border border-slate-500 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition-all duration-200"
+          >
+            <DescargarIcon width={18} height={18} fill="white" />
+            <span className="font-medium text-sm">Descargar PDF</span>
+          </button>
+          
+          {/* Enviar Documento */}
+          <button 
+            onClick={() => {
+              console.log('🚀 Navegando a enviar documento');
+              window.dispatchEvent(new CustomEvent('navigate', { detail: { to: 'enviar' } }));
+            }}
+            className="bg-emerald-600 hover:bg-emerald-700 border border-emerald-500 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition-all duration-200"
+          >
+            <SendIcon width={18} height={18} fill="white" />
+            <span className="font-medium text-sm">Enviar Documento</span>
+          </button>
+        </div>
       </div>
 
       {/* SECCIÓN DE SEGUIMIENTO PROFESIONAL */}
@@ -706,9 +730,10 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
                   <button
                     onClick={() => setShowUbicacionModal(true)}
                     className="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-md transition-colors duration-200 flex items-center gap-1"
+                    disabled={actualizandoEstado}
                   >
                     <LupayIcon width={12} height={12} fill="currentColor" />
-                    Cambiar
+                    {actualizandoEstado ? 'Actualizando...' : 'Cambiar'}
                   </button>
                 </div>
                 <div className="ml-11">
@@ -721,11 +746,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
                         : 'bg-red-500'
                     }`}></div>
                     <p className="text-lg font-medium text-white">
-                      {hojaCompleta?.ubicacion_actual ? (
-                        hojaCompleta.ubicacion_actual.toLowerCase().includes('sedeges') ? 
-                          'SEDEGES - Sede Central' : 
-                          hojaCompleta.ubicacion_actual
-                      ) : 'Sin ubicación definida'}
+                      {hojaCompleta?.ubicacion_actual || 'Sin ubicación definida'}
                     </p>
                   </div>
                   {hojaCompleta?.responsable_actual && (
@@ -766,8 +787,8 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
             </div>
           </div>
 
-          {/* Historial y cambio rápido de estado */}
-          <div className="flex flex-col items-end gap-3 text-white/70">
+          {/* Historial y cambio de estado fijo */}
+          <div className="flex flex-col items-end gap-4 text-white/70">
             <div className="flex items-center gap-2">
               <HistorialIcon width={20} height={20} fill="currentColor" />
               <span className="text-sm">
@@ -775,28 +796,34 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
               </span>
             </div>
             
-            {/* Botones de cambio rápido */}
-            <div className="flex gap-2 flex-wrap justify-end">
-              {estadosDisponibles
-                .filter(estado => estado.valor !== hojaCompleta?.estado)
-                .slice(0, 3)
-                .map((estado) => (
-                <button
-                  key={estado.valor}
-                  onClick={() => cambiarEstado(estado.valor)}
-                  disabled={actualizandoEstado}
-                  className={`
-                    ${estado.color} disabled:opacity-50 disabled:cursor-not-allowed
-                    text-white font-medium px-3 py-1.5 rounded-lg text-xs
-                    transition-all duration-300 hover:scale-105 hover:shadow-lg
-                    flex items-center gap-1
-                  `}
-                  title={`Cambiar a: ${estado.descripcion}`}
-                >
-                  {React.createElement(estado.icon, { width: 14, height: 14, fill: "white" })}
-                  {estado.nombre}
-                </button>
-              ))}
+            {/* Menú desplegable para cambio de estado - FIJO */}
+            <div className="bg-slate-800/80 border border-slate-600 rounded-lg p-4 backdrop-blur-sm min-w-[200px]">
+              <label className="block text-xs font-medium text-slate-300 mb-2">
+                Cambiar Estado
+              </label>
+              <select
+                value={hojaCompleta?.estado || 'pendiente'}
+                onChange={(e) => {
+                  if (e.target.value !== hojaCompleta?.estado) {
+                    cambiarEstado(e.target.value);
+                  }
+                }}
+                disabled={actualizandoEstado}
+                className="w-full px-3 py-2 bg-slate-700 border border-slate-500 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+              >
+                {estadosDisponibles.map((estado) => (
+                  <option key={estado.valor} value={estado.valor} className="bg-slate-700 text-white">
+                    {estado.nombre}
+                  </option>
+                ))}
+              </select>
+              
+              {actualizandoEstado && (
+                <div className="flex items-center gap-2 mt-2 text-xs text-blue-400">
+                  <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                  Actualizando estado...
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -902,58 +929,136 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
         </div>
       </div>
 
-      {/* Modal de Cambio de Ubicación */}
+      {/* Modal de Cambio de Ubicación - Diseño Mejorado */}
       {showUbicacionModal && createPortal(
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full my-8">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-3">
-                  <div className="bg-slate-100 p-2 rounded-lg">
-                    <LupayIcon width={20} height={20} fill="#475569" />
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 transform transition-all duration-300 scale-100">
+            {/* Header del Modal */}
+            <div className="bg-linear-to-r from-slate-700 to-slate-800 p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm">
+                    <LupayIcon width={24} height={24} fill="white" />
                   </div>
-                  Cambiar Ubicación del Documento
-                </h2>
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Cambiar Ubicación del Documento</h2>
+                    <p className="text-slate-200 text-sm">Actualizar la ubicación actual y responsable</p>
+                  </div>
+                </div>
                 <button
                   onClick={() => setShowUbicacionModal(false)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
+                  className="text-white/70 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
+            </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Seleccionar Nueva Ubicación
+            {/* Contenido del Modal */}
+            <div className="p-6">
+              {/* Información Actual */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+                <h3 className="font-medium text-slate-800 mb-3 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-slate-600 rounded-full"></div>
+                  Ubicación Actual
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-600">Ubicación:</span>
+                    <p className="font-medium text-slate-800">{hojaCompleta?.ubicacion_actual || 'No definida'}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-600">Responsable:</span>
+                    <p className="font-medium text-slate-800">{hojaCompleta?.responsable_actual || 'No asignado'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulario de Nueva Ubicación */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    📍 Nueva Ubicación
                   </label>
                   <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        const responsable = e.target.value === 'SEDEGES' ? 'Sistema SEDEGES' : `Responsable de ${e.target.value}`;
-                        cambiarUbicacion(e.target.value, responsable);
-                        setShowUbicacionModal(false);
-                      }
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-all bg-white text-gray-800"
+                    id="nuevaUbicacion"
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-4 focus:ring-slate-500/20 focus:border-slate-500 transition-all bg-white text-slate-800 font-medium"
                     defaultValue=""
                   >
-                    <option value="">-- Seleccionar ubicación --</option>
-                    <option value="SEDEGES">SEDEGES - Sede Central</option>
-                    {destinos.map((destino) => (
-                      <option key={destino.id} value={destino.nombre}>
-                        {destino.nombre}
-                      </option>
-                    ))}
-                    <option value="ARCHIVO GENERAL">Archivo General</option>
-                    <option value="ENTIDAD EXTERNA">Entidad Externa</option>
+                    <option value="" className="text-slate-500">-- Seleccionar nueva ubicación --</option>
+                    <optgroup label="🏢 Ubicaciones Principales" className="font-medium">
+                      <option value="SEDEGES - Sede Central" className="text-slate-800">SEDEGES - Sede Central</option>
+                      <option value="ARCHIVO GENERAL" className="text-slate-800">Archivo General</option>
+                      <option value="ENTIDAD EXTERNA" className="text-slate-800">Entidad Externa</option>
+                    </optgroup>
+                    <optgroup label="🏠 Centros de Acogida" className="font-medium">
+                      {destinos.filter(d => d.tipo === 'centro_acogida').map((destino) => (
+                        <option key={destino.id} value={destino.nombre} className="text-slate-800">
+                          {destino.nombre}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🏛️ Direcciones Administrativas" className="font-medium">
+                      {destinos.filter(d => d.tipo === 'direccion').map((destino) => (
+                        <option key={destino.id} value={destino.nombre} className="text-slate-800">
+                          {destino.nombre}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
-                  <p className="text-xs text-gray-500 mt-2">
-                    El documento será transferido a la ubicación seleccionada y se actualizará su estado de seguimiento.
-                  </p>
                 </div>
+                
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    👤 Responsable
+                  </label>
+                  <input
+                    type="text"
+                    id="responsable"
+                    placeholder="Nombre del nuevo responsable"
+                    className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl focus:ring-4 focus:ring-slate-500/20 focus:border-slate-500 transition-all bg-white text-slate-800 font-medium"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Ingresa el nombre completo del responsable</p>
+                </div>
+              </div>
+              
+              {/* Botones de Acción */}
+              <div className="flex justify-end gap-4 mt-8 pt-6 border-t border-slate-200">
+                <button
+                  onClick={() => setShowUbicacionModal(false)}
+                  className="px-6 py-3 border-2 border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 hover:border-slate-400 transition-all font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    const selectElement = document.getElementById('nuevaUbicacion') as HTMLSelectElement;
+                    const responsableElement = document.getElementById('responsable') as HTMLInputElement;
+                    
+                    if (selectElement?.value && responsableElement?.value) {
+                      cambiarUbicacion(selectElement.value, responsableElement.value);
+                      setShowUbicacionModal(false);
+                    } else {
+                      toast.error('Por favor seleccione una ubicación y responsable');
+                    }
+                  }}
+                  disabled={actualizandoEstado}
+                  className="px-6 py-3 bg-linear-to-r from-slate-600 to-slate-700 text-white rounded-xl hover:from-slate-700 hover:to-slate-800 transition-all font-medium shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {actualizandoEstado ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Actualizando...
+                    </>
+                  ) : (
+                    <>
+                      <LupayIcon width={16} height={16} fill="white" />
+                      Confirmar Cambio
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>
