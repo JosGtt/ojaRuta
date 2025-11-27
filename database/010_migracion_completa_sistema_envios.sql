@@ -76,6 +76,8 @@ CREATE TRIGGER trigger_update_envios_updated_at
 
 CREATE OR REPLACE FUNCTION actualizar_estado_hoja_por_envio()
 RETURNS TRIGGER AS $$
+DECLARE
+    destino_nombre VARCHAR(200);
 BEGIN
     -- Solo actualizar si el estado cambió a 'enviado' y hay una hoja vinculada
     IF NEW.estado = 'enviado' AND (OLD IS NULL OR OLD.estado != 'enviado') AND NEW.hoja_id IS NOT NULL THEN
@@ -84,10 +86,17 @@ BEGIN
             NEW.fecha_envio = now();
         END IF;
         
-        -- Actualizar el estado de la hoja de ruta
+        -- Obtener el nombre del destino
+        SELECT nombre INTO destino_nombre 
+        FROM destinos 
+        WHERE id = NEW.destino_id;
+        
+        -- Actualizar el estado Y la ubicación de la hoja de ruta
         UPDATE hojas_ruta 
         SET 
             estado = 'enviada',
+            ubicacion_actual = COALESCE(destino_nombre, 'Destino no especificado'),
+            responsable_actual = NEW.destinatario_nombre,
             updated_at = now()
         WHERE id = NEW.hoja_id;
         

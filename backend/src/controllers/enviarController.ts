@@ -16,7 +16,8 @@ export const crearEnvio = async (req: AuthRequest, res: Response) => {
       destinatario_numero, 
       destino_id,
       comentarios, 
-      archivos 
+      archivos,
+      marcar_como_enviado = true // Por defecto marcar como enviado
     } = req.body || {};
 
     console.log('📤 Creando envío:', { 
@@ -25,7 +26,8 @@ export const crearEnvio = async (req: AuthRequest, res: Response) => {
       destinatario_nombre,
       destinatario_correo,
       destinatario_numero,
-      destino_id
+      destino_id,
+      marcar_como_enviado
     });
 
     // Validar campos requeridos
@@ -35,6 +37,10 @@ export const crearEnvio = async (req: AuthRequest, res: Response) => {
 
     // Procesar archivos como JSON
     const archivosJson = archivos ? JSON.stringify(archivos) : '[]';
+
+    // Determinar estado inicial
+    const estadoInicial = marcar_como_enviado ? 'enviado' : 'registrado';
+    const fechaEnvio = marcar_como_enviado ? 'now()' : 'NULL';
 
     // Insertar en tabla envios con nueva estructura
     const insertQuery = `
@@ -46,10 +52,12 @@ export const crearEnvio = async (req: AuthRequest, res: Response) => {
         destinatario_numero, 
         destino_id,
         archivos, 
-        comentarios, 
+        comentarios,
+        estado,
+        fecha_envio, 
         created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, now())
+      VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, ${fechaEnvio}, now())
       RETURNING *;
     `;
 
@@ -61,17 +69,32 @@ export const crearEnvio = async (req: AuthRequest, res: Response) => {
       destinatario_numero?.trim() || null,
       destino_id || null,
       archivosJson, 
-      comentarios?.trim() || null
+      comentarios?.trim() || null,
+      estadoInicial
     ];
 
     const result = await pool.query(insertQuery, values);
     
     console.log('✅ Envío creado exitosamente:', result.rows[0]);
 
+    // Si se marcó como enviado, obtener información del destino para el mensaje
+    let mensajeExito = 'Envío registrado correctamente';
+    if (marcar_como_enviado && destino_id) {
+      try {
+        const destinoQuery = 'SELECT nombre FROM destinos WHERE id = $1';
+        const destinoResult = await pool.query(destinoQuery, [destino_id]);
+        if (destinoResult.rows.length > 0) {
+          mensajeExito = `Documento enviado exitosamente a: ${destinoResult.rows[0].nombre}`;
+        }
+      } catch (err) {
+        console.warn('⚠️ No se pudo obtener nombre del destino:', err);
+      }
+    }
+
     return res.status(201).json({ 
       success: true, 
       envio: result.rows[0],
-      mensaje: 'Envío registrado correctamente'
+      mensaje: mensajeExito
     });
 
   } catch (err: any) {
@@ -146,34 +169,49 @@ export const actualizarEstadoEnvio = async (req: AuthRequest, res: Response) => 
     const { id } = req.params;
     const { estado, fecha_entrega } = req.body;
 
-    console.log('🔄 Actualizando estado de envío:', { id, estado, fecha_entrega });
+    console.log('🔄 === INICIO ACTUALIZACIÓN ESTADO ===');
+    console.log('🔄 Datos recibidos:', { id, estado, fecha_entrega });
 
     // Validar que el ID sea un número válido
     if (!id || isNaN(Number(id))) {
+      console.log('❌ ID inválido:', id);
       return res.status(400).json({ error: 'ID de envío inválido' });
     }
 
     // Validar estado
     const estadosValidos = ['registrado', 'enviado', 'entregado', 'cancelado'];
     if (!estado || !estadosValidos.includes(estado)) {
+      console.log('❌ Estado inválido:', estado);
       return res.status(400).json({ 
         error: 'Estado inválido. Debe ser: ' + estadosValidos.join(', ') 
       });
     }
 
-    // Construir la query de actualización
-    let updateQuery = `UPDATE envios SET estado = $1, updated_at = now()`;
-    let values = [estado];
+    // Primero obtener el envío actual para debug
+    const selectQuery = 'SELECT * FROM envios WHERE id = $1';
+    const selectResult = await pool.query(selectQuery, [Number(id)]);
+    
+    if (selectResult.rows.length === 0) {
+      console.log('❌ Envío no encontrado con ID:', id);
+      return res.status(404).json({ error: 'Envío no encontrado' });
+    }
 
-    // Si se marca como entregado, actualizar fecha_entrega
-    if (estado === 'entregado' && fecha_entrega) {
-      updateQuery += `, fecha_entrega = $2`;
-      values.push(fecha_entrega);
-      updateQuery += ` WHERE id = $3 RETURNING *`;
-      values.push(Number(id));
+    console.log('📋 Envío actual:', selectResult.rows[0]);
+
+    // Construir la query de actualización simplificada
+    let updateQuery: string;
+    let values: any[];
+
+    if (estado === 'enviado') {
+      // Para estado enviado, también actualizar fecha_envio
+      updateQuery = `UPDATE envios SET estado = $1, fecha_envio = COALESCE(fecha_envio, now()), updated_at = now() WHERE id = $2 RETURNING *`;
+      values = [estado, Number(id)];
+    } else if (estado === 'entregado' && fecha_entrega) {
+      updateQuery = `UPDATE envios SET estado = $1, fecha_entrega = $2, updated_at = now() WHERE id = $3 RETURNING *`;
+      values = [estado, fecha_entrega, Number(id)];
     } else {
-      updateQuery += ` WHERE id = $2 RETURNING *`;
-      values.push(Number(id));
+      updateQuery = `UPDATE envios SET estado = $1, updated_at = now() WHERE id = $2 RETURNING *`;
+      values = [estado, Number(id)];
     }
 
     console.log('📝 Query a ejecutar:', updateQuery);
@@ -182,10 +220,11 @@ export const actualizarEstadoEnvio = async (req: AuthRequest, res: Response) => 
     const result = await pool.query(updateQuery, values);
 
     if (result.rows.length === 0) {
+      console.log('❌ No se pudo actualizar, envío no encontrado');
       return res.status(404).json({ error: 'Envío no encontrado' });
     }
 
-    console.log('✅ Estado de envío actualizado:', result.rows[0]);
+    console.log('✅ Estado actualizado exitosamente:', result.rows[0]);
 
     return res.status(200).json({ 
       success: true, 
@@ -194,25 +233,31 @@ export const actualizarEstadoEnvio = async (req: AuthRequest, res: Response) => 
     });
 
   } catch (err: any) {
-    console.error('❌ Error al actualizar estado de envío:', err);
-    console.error('❌ Stack trace:', err.stack);
+    console.error('❌ === ERROR COMPLETO ===');
+    console.error('❌ Mensaje:', err.message);
+    console.error('❌ Código:', err.code);
+    console.error('❌ Detalle:', err.detail);
+    console.error('❌ Stack:', err.stack);
     
     // Errores específicos de PostgreSQL
     if (err.code === '23503') {
       return res.status(400).json({ 
-        error: 'Error de referencia: verifique que el envío y destino existan' 
+        error: 'Error de referencia: verifique que el envío y destino existan',
+        detalle: err.detail
       });
     }
 
     if (err.code === '23514') {
       return res.status(400).json({ 
-        error: 'Estado inválido según las restricciones de la base de datos' 
+        error: 'Estado inválido según las restricciones de la base de datos',
+        detalle: err.detail
       });
     }
 
     return res.status(500).json({ 
       error: 'Error interno del servidor al actualizar estado',
-      detalle: process.env.NODE_ENV === 'development' ? err.message : 'Error interno del servidor'
+      detalle: err.message,
+      codigo: err.code
     });
   }
 };
