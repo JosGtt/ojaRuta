@@ -14,6 +14,12 @@ interface AuthContextType {
   login: (usuario: string, password: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
+  // Funciones de autorización
+  canEdit: () => boolean;
+  canCreate: () => boolean;
+  canRead: () => boolean;
+  isAdmin: () => boolean;
+  isDeveloper: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -86,12 +92,38 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     sessionStorage.removeItem('sedeges_user');
   };
 
+  // Funciones de autorización
+  const canEdit = (): boolean => {
+    return user?.rol === 'desarrollador' || user?.rol === 'admin';
+  };
+
+  const canCreate = (): boolean => {
+    return user?.rol === 'desarrollador' || user?.rol === 'admin' || user?.rol === 'usuario';
+  };
+
+  const canRead = (): boolean => {
+    return !!user; // Cualquier usuario autenticado puede leer
+  };
+
+  const isAdmin = (): boolean => {
+    return user?.rol === 'admin' || user?.rol === 'desarrollador';
+  };
+
+  const isDeveloper = (): boolean => {
+    return user?.rol === 'desarrollador';
+  };
+
   const value = {
     user,
     token,
     login,
     logout,
-    isLoading
+    isLoading,
+    canEdit,
+    canCreate,
+    canRead,
+    isAdmin,
+    isDeveloper
   };
 
   return (

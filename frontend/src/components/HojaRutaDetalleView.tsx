@@ -19,6 +19,7 @@ import RelojIcon from '../assets/reloj';
 import CronometroIcon from '../assets/cronometro';
 import ArchivoIcon from '../assets/archivo';
 import LupayIcon from '../assets/lupay';
+import EditarIcon from '../assets/editar';
 
 interface HojaRutaDetalleViewProps {
   hoja: any;
@@ -26,13 +27,14 @@ interface HojaRutaDetalleViewProps {
 }
 
 const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack }) => {
-  const { token } = useAuth();
+  const { token, canEdit, canCreate, user } = useAuth();
   const [hojaCompleta, setHojaCompleta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [actualizandoEstado, setActualizandoEstado] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showUbicacionModal, setShowUbicacionModal] = useState(false);
+  const [showEditCompleteModal, setShowEditCompleteModal] = useState(false);
   const [editingSection, setEditingSection] = useState<number>(0);
   const [destinos, setDestinos] = useState<any[]>([]);
   const [loadingDestinos, setLoadingDestinos] = useState(false);
@@ -206,6 +208,456 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
     } finally {
       setActualizandoEstado(false);
     }
+  };
+
+  // Función para actualizar la hoja de ruta completa
+  const guardarEdicionCompleta = async (formData: any) => {
+    if (!hojaCompleta) return;
+    
+    try {
+      setActualizandoEstado(true);
+      console.log('📝 Datos completos a guardar:', formData);
+      
+      // Enviar actualización al backend
+      const response = await axios.put(`http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('✅ Respuesta del backend:', response.data);
+      
+      if (response.data.success) {
+        // Actualizar estado local con todos los nuevos datos
+        const updatedHoja = { ...hojaCompleta, ...formData };
+        setHojaCompleta(updatedHoja);
+        setShowEditCompleteModal(false);
+        toast.success('Hoja de ruta actualizada correctamente');
+        
+        // Refrescar los datos desde el servidor para asegurar consistencia
+        await fetchHojaCompleta();
+      } else {
+        throw new Error(response.data.message || 'Error al actualizar');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error al actualizar hoja completa:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error al actualizar la hoja de ruta';
+      toast.error(errorMessage);
+    } finally {
+      setActualizandoEstado(false);
+    }
+  };
+
+  // Componente Modal de Edición Completa
+  const ModalEdicionCompleta = () => {
+    const [formData, setFormData] = useState({
+      numero_hr: '',
+      nombre_solicitante: '',
+      telefono_celular: '',
+      referencia: '',
+      procedencia: '',
+      fecha_limite: '',
+      fecha_ingreso: '',
+      cite: '',
+      numero_fojas: '',
+      prioridad: 'rutinario',
+      estado: 'pendiente',
+      observaciones: ''
+    });
+    
+    // Estado para controlar qué campos están siendo editados
+    const [camposEditando, setCamposEditando] = useState<{[key: string]: boolean}>({});
+    const [datosLoaded, setDatosLoaded] = useState(false);
+
+    // Cargar datos iniciales cuando se abre el modal o cuando cambian los datos
+    React.useEffect(() => {
+      if (hojaCompleta) {
+        console.log('🔄 Cargando datos de hoja completa en modal:', hojaCompleta);
+        
+        const newFormData = {
+          numero_hr: hojaCompleta.numero_hr || '',
+          nombre_solicitante: hojaCompleta.nombre_solicitante || '',
+          telefono_celular: hojaCompleta.telefono_celular || '',
+          referencia: hojaCompleta.referencia || '',
+          procedencia: hojaCompleta.procedencia || '',
+          fecha_limite: hojaCompleta.fecha_limite ? hojaCompleta.fecha_limite.split('T')[0] : '',
+          fecha_ingreso: hojaCompleta.fecha_ingreso ? hojaCompleta.fecha_ingreso.split('T')[0] : '',
+          cite: hojaCompleta.cite || '',
+          numero_fojas: hojaCompleta.numero_fojas?.toString() || '',
+          prioridad: hojaCompleta.prioridad || 'rutinario',
+          estado: hojaCompleta.estado || 'pendiente',
+          observaciones: hojaCompleta.observaciones || ''
+        };
+        
+        console.log('📝 Datos formateados para el formulario:', newFormData);
+        setFormData(newFormData);
+        setDatosLoaded(true);
+      }
+    }, [hojaCompleta]);
+
+    // Función para alternar modo edición de un campo
+    const toggleEditField = (fieldName: string) => {
+      setCamposEditando(prev => ({
+        ...prev,
+        [fieldName]: !prev[fieldName]
+      }));
+    };
+
+    // Función para editar todos los campos
+    const toggleEditAllFields = () => {
+      const allFields = [
+        'numero_hr', 'nombre_solicitante', 'telefono_celular', 'referencia', 
+        'procedencia', 'fecha_limite', 'fecha_ingreso', 'cite', 'numero_fojas', 
+        'prioridad', 'estado', 'observaciones'
+      ];
+      const allEditing = allFields.every(field => camposEditando[field]);
+      
+      const newState: {[key: string]: boolean} = {};
+      allFields.forEach(field => {
+        newState[field] = !allEditing;
+      });
+      setCamposEditando(newState);
+    };
+
+    // Componente para campo editable
+    const EditableField = ({ 
+      label, 
+      fieldName, 
+      value, 
+      type = 'text', 
+      required = false, 
+      isTextarea = false,
+      selectOptions = null 
+    }: {
+      label: string;
+      fieldName: string;
+      value: string;
+      type?: string;
+      required?: boolean;
+      isTextarea?: boolean;
+      selectOptions?: {value: string, label: string}[] | null;
+    }) => {
+      const isEditing = camposEditando[fieldName];
+      
+      return (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700">
+              {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            {canEdit() && (
+              <button
+                onClick={() => toggleEditField(fieldName)}
+                className={`p-1 rounded-md transition-colors ${
+                  isEditing 
+                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+                title={isEditing ? 'Guardar campo' : 'Editar campo'}
+              >
+              {isEditing ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <EditarIcon width={14} height={14} fill="currentColor" />
+              )}
+              </button>
+            )}
+          </div>
+          
+          {(isEditing && canEdit()) ? (
+            // Modo edición
+            <>
+              {selectOptions ? (
+                <select
+                  value={value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                  className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50"
+                >
+                  {selectOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              ) : isTextarea ? (
+                <textarea
+                  value={value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50"
+                  placeholder={`Ingrese ${label.toLowerCase()}...`}
+                />
+              ) : (
+                <input
+                  type={type}
+                  value={value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, [fieldName]: e.target.value }))}
+                  className="w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50"
+                  placeholder={`Ingrese ${label.toLowerCase()}...`}
+                />
+              )}
+            </>
+          ) : (
+            // Modo solo lectura
+            <div className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[42px] flex items-center">
+              <span className={`${value ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                {value || `Sin ${label.toLowerCase()}`}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const handleSave = () => {
+      console.log('💾 Guardando datos del formulario:', formData);
+      console.log('📋 Datos originales de la hoja:', hojaCompleta);
+      
+      // Validaciones básicas
+      if (!formData.numero_hr.trim()) {
+        toast.error('El número de H.R. es requerido');
+        return;
+      }
+      if (!formData.referencia.trim()) {
+        toast.error('La referencia es requerida');
+        return;
+      }
+      if (!formData.procedencia.trim()) {
+        toast.error('La procedencia es requerida');
+        return;
+      }
+
+      // Convertir numero_fojas a número si tiene valor, sino null
+      const dataToSave = {
+        ...formData,
+        numero_fojas: formData.numero_fojas ? parseInt(formData.numero_fojas) : null
+      };
+
+      console.log('📤 Datos finales a enviar:', dataToSave);
+      guardarEdicionCompleta(dataToSave);
+    };
+
+    return createPortal(
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+          <div className="p-6">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-100 p-3 rounded-xl">
+                  <EditarIcon width={24} height={24} fill="#2563eb" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Editar Hoja de Ruta</h2>
+                  <p className="text-gray-600 text-sm">
+                    Modifica los datos principales del documento: {hojaCompleta?.numero_hr}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowEditCompleteModal(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-gray-100"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Indicador de datos cargados */}
+            {hojaCompleta && datosLoaded ? (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm font-medium">
+                      Editando hoja: <span className="font-bold">{hojaCompleta.numero_hr}</span>
+                      {hojaCompleta.referencia && (
+                        <span className="text-blue-600 ml-2">
+                          - {hojaCompleta.referencia.substring(0, 50)}
+                          {hojaCompleta.referencia.length > 50 ? '...' : ''}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleEditAllFields}
+                    className="flex items-center gap-2 px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                  >
+                    <EditarIcon width={12} height={12} fill="white" />
+                    Editar Todo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3 text-gray-600">
+                  <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm font-medium">Cargando datos de la hoja de ruta...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Formulario con campos editables */}
+            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6 ${!datosLoaded ? 'opacity-50 pointer-events-none' : ''}`}>
+              {/* Información Básica */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                  📋 Información Básica
+                </h3>
+                
+                <EditableField
+                  label="Número H.R."
+                  fieldName="numero_hr"
+                  value={formData.numero_hr}
+                  required={true}
+                />
+
+                <EditableField
+                  label="Nombre del Solicitante"
+                  fieldName="nombre_solicitante"
+                  value={formData.nombre_solicitante}
+                  required={true}
+                />
+
+                <EditableField
+                  label="Teléfono Celular"
+                  fieldName="telefono_celular"
+                  value={formData.telefono_celular}
+                  type="tel"
+                />
+
+                <EditableField
+                  label="Procedencia"
+                  fieldName="procedencia"
+                  value={formData.procedencia}
+                  required={true}
+                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <EditableField
+                    label="Prioridad"
+                    fieldName="prioridad"
+                    value={formData.prioridad}
+                    selectOptions={[
+                      { value: 'urgente', label: 'Urgente' },
+                      { value: 'prioritario', label: 'Prioritario' },
+                      { value: 'rutinario', label: 'Rutinario' },
+                      { value: 'otros', label: 'Otros' }
+                    ]}
+                  />
+                  
+                  <EditableField
+                    label="Estado"
+                    fieldName="estado"
+                    value={formData.estado}
+                    selectOptions={[
+                      { value: 'pendiente', label: 'Pendiente' },
+                      { value: 'enviada', label: 'Enviada' },
+                      { value: 'en_proceso', label: 'En Proceso' },
+                      { value: 'finalizada', label: 'Finalizada' },
+                      { value: 'archivada', label: 'Archivada' }
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Detalles del Documento */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                  📄 Detalles del Documento
+                </h3>
+                
+                <EditableField
+                  label="Cite"
+                  fieldName="cite"
+                  value={formData.cite}
+                />
+
+                <EditableField
+                  label="Número de Fojas"
+                  fieldName="numero_fojas"
+                  value={formData.numero_fojas}
+                  type="number"
+                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <EditableField
+                    label="Fecha de Ingreso"
+                    fieldName="fecha_ingreso"
+                    value={formData.fecha_ingreso}
+                    type="date"
+                  />
+                  
+                  <EditableField
+                    label="Fecha Límite"
+                    fieldName="fecha_limite"
+                    value={formData.fecha_limite}
+                    type="date"
+                  />
+                </div>
+
+                <EditableField
+                  label="Observaciones"
+                  fieldName="observaciones"
+                  value={formData.observaciones}
+                  isTextarea={true}
+                />
+              </div>
+
+              {/* Referencia - Campo amplio */}
+              <div className="md:col-span-2">
+                <h3 className="text-lg font-semibold text-gray-800 border-b border-gray-200 pb-2 mb-4">
+                  📝 Contenido del Documento
+                </h3>
+                
+                <EditableField
+                  label="Referencia"
+                  fieldName="referencia"
+                  value={formData.referencia}
+                  required={true}
+                  isTextarea={true}
+                />
+              </div>
+            </div>
+
+            {/* Botones */}
+            <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowEditCompleteModal(false)}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={actualizandoEstado || !datosLoaded}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {actualizandoEstado ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <EditarIcon width={16} height={16} fill="white" />
+                    Guardar Cambios ({hojaCompleta?.numero_hr})
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   // Componente Modal de Edición
@@ -679,6 +1131,29 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Editar Hoja Completa - Solo para usuarios con permisos de edición */}
+          {canEdit() && (
+            <button 
+              onClick={() => setShowEditCompleteModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 border border-blue-500 text-white px-4 py-2 rounded-lg shadow-md flex items-center gap-2 transition-all duration-200"
+            >
+              <EditarIcon width={18} height={18} fill="white" />
+              <span className="font-medium text-sm">Editar Hoja</span>
+            </button>
+          )}
+          
+          {/* Mensaje informativo para usuarios sin permisos */}
+          {!canEdit() && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg shadow-sm flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium text-sm">
+                Solo lectura - Usuario: {user?.rol || 'Desconocido'}
+              </span>
+            </div>
+          )}
+          
           {/* Descargar PDF */}
           <button 
             onClick={handleDescargarPDF}
@@ -1068,6 +1543,9 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
 
       {/* Modal de Edición */}
       {showEditModal && <ModalEdicionSeccion />}
+      
+      {/* Modal de Edición Completa */}
+      {showEditCompleteModal && <ModalEdicionCompleta />}
     </div>
   );
 };
