@@ -142,10 +142,15 @@ const EnviarPageReestructurado: React.FC = () => {
   };
 
   return (
-    <div style={{ background: 'var(--color-vino-oscuro)' }} className="p-6 text-white min-h-screen">
+    <div className="p-6 text-white min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="w-12 h-12 flex items-center justify-center rounded-sm" style={{ background: 'var(--color-esmeralda)' }}>
             <EnviarIcon width={24} height={24} fill="white" />
           </div>
@@ -158,24 +163,35 @@ const EnviarPageReestructurado: React.FC = () => {
 
       {/* Loading Initial Data */}
       {loadingData && (
-        <div className="mb-6 p-4 rounded-sm border bg-blue-600/20 text-blue-100 border-blue-500/30">
+        <div className="mb-6 p-4 rounded-xl border bg-blue-600/20 text-blue-100 border-blue-500/30" style={{
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        }}>
           <span className="font-medium">Cargando datos...</span>
         </div>
       )}
 
       {/* Message Display */}
       {message && (
-        <div className={`mb-6 p-4 rounded-sm border ${
+        <div className={`mb-6 p-4 rounded-xl border ${
           message.includes('Error') 
             ? 'bg-red-600/20 text-red-100 border-red-500/30' 
             : 'bg-green-600/20 text-green-100 border-green-500/30'
-        }`}>
+        }`} style={{
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        }}>
           <span className="font-medium">{message}</span>
         </div>
       )}
 
       {/* Form Section */}
-      <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+      <div className="rounded-2xl p-6" style={{
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* Información del Destinatario */}
@@ -398,7 +414,12 @@ const EnviarPageReestructurado: React.FC = () => {
       </div>
 
       {/* Información adicional */}
-      <div className="mt-6 p-4 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm">
+      <div className="mt-6 p-4 rounded-2xl" style={{
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         <h4 className="font-medium text-white/90 mb-2">Funcionalidades Agregadas:</h4>
         <ul className="text-sm text-white/70 space-y-1">
           <li>• <strong>Destinatario completo:</strong> Nombre, correo y teléfono</li>

@@ -89,7 +89,7 @@ const HistorialPage = () => {
 
   if (loading) {
     return (
-      <div style={{ background: 'var(--color-vino-oscuro)' }} className="p-6 text-white min-h-screen flex items-center justify-center">
+      <div className="p-6 text-white min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin w-8 h-8 border-2 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
           <p>Cargando historial...</p>
@@ -99,10 +99,15 @@ const HistorialPage = () => {
   }
 
   return (
-    <div style={{ background: 'var(--color-vino-oscuro)' }} className="p-6 text-white min-h-screen">
+    <div className="p-6 text-white min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="w-12 h-12 flex items-center justify-center rounded-sm" style={{ background: 'var(--color-esmeralda)' }}>
             <HistorialIcon width={24} height={24} fill="white" />
           </div>
@@ -115,7 +120,12 @@ const HistorialPage = () => {
 
       {/* Estadísticas Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-4">
+        <div className="rounded-2xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold text-green-400">{historialData.añadidos.length}</div>
@@ -124,7 +134,12 @@ const HistorialPage = () => {
             <CheckIcon width={24} height={24} fill="#4ade80" />
           </div>
         </div>
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-4">
+        <div className="rounded-2xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold text-yellow-400">{historialData.editados.length}</div>
@@ -133,7 +148,12 @@ const HistorialPage = () => {
             <EditarIcon width={24} height={24} fill="#facc15" />
           </div>
         </div>
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-4">
+        <div className="rounded-2xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-2xl font-bold text-blue-400">{historialData.enviados.length}</div>
@@ -148,8 +168,13 @@ const HistorialPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Últimos Añadidos */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm">
-          <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="rounded-2xl" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
+          <div className="p-4 border-b border-[rgba(255,255,255,0.15)]">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-green-400">
               <CheckIcon width={20} height={20} fill="#4ade80" />
               Últimos Añadidos
@@ -158,7 +183,12 @@ const HistorialPage = () => {
           </div>
           <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
             {historialData.añadidos.map((item) => (
-              <div key={item.id} className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-3">
+              <div key={item.id} className="rounded-xl p-3" style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
+              }}>
                 <div className="font-medium text-white">H.R. {item.numero_hr}</div>
                 <div className="text-sm text-white/80 mt-1">{item.referencia}</div>
                 <div className="text-xs text-green-400 mt-1">De: {item.procedencia}</div>
@@ -172,8 +202,13 @@ const HistorialPage = () => {
         </div>
 
         {/* Últimos Editados */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm">
-          <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="rounded-2xl" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
+          <div className="p-4 border-b border-[rgba(255,255,255,0.15)]">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-yellow-400">
               <EditarIcon width={20} height={20} fill="#facc15" />
               Últimos Editados
@@ -182,7 +217,12 @@ const HistorialPage = () => {
           </div>
           <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
             {historialData.editados.map((item) => (
-              <div key={item.id} className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-3">
+              <div key={item.id} className="rounded-xl p-3" style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
+              }}>
                 <div className="font-medium text-white">H.R. {item.numero_hr}</div>
                 <div className="text-sm text-white/80 mt-1">{item.referencia}</div>
                 <div className="text-xs text-yellow-400 mt-1">De: {item.procedencia}</div>
@@ -196,8 +236,13 @@ const HistorialPage = () => {
         </div>
 
         {/* Últimos Enviados */}
-        <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm">
-          <div className="p-4 border-b border-[rgba(255,255,255,0.06)]">
+        <div className="rounded-2xl" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
+          <div className="p-4 border-b border-[rgba(255,255,255,0.15)]">
             <h2 className="flex items-center gap-2 text-lg font-semibold text-blue-400">
               <EnviarIcon width={20} height={20} fill="#60a5fa" />
               Últimos Enviados
@@ -206,7 +251,12 @@ const HistorialPage = () => {
           </div>
           <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
             {historialData.enviados.map((item) => (
-              <div key={item.id} className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm p-3">
+              <div key={item.id} className="rounded-xl p-3" style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.12)'
+              }}>
                 <div className="font-medium text-white">H.R. {item.numero_hr}</div>
                 <div className="text-sm text-white/80 mt-1">Para: {item.destinatario}</div>
                 <div className="flex justify-between items-center mt-2">

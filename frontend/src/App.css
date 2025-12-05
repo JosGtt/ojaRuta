@@ -21,7 +21,8 @@
   --color-fondo-oscuro: #2C1A24;
 }
 
-/* make sure App also uses the vino background if loaded */
+/* make sure App also uses the gradient background if loaded */
 body.app-vino, body, #root {
-  background: var(--color-vino);
+  background: linear-gradient(135deg, #007A3D 0%, rgba(216, 30, 5, 0.3) 50%, #D81E05 100%);
+  background-attachment: fixed;
 }

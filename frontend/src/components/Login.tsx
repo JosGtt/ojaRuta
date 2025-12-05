@@ -138,14 +138,6 @@ const Login = () => {
               <p className="text-[var(--color-punzo-600)] font-medium">© 2025 Estado Plurinacional de Bolivia</p>
             </div>
           </div>
-
-          {/* Datos de prueba (solo para desarrollo) */}
-          <div className="mt-4 p-3 bg-[var(--color-punzo-50)] border border-[var(--color-punzo-100)] rounded-lg">
-            <p className="text-xs text-[var(--color-punzo-700)] text-center">
-              <span className="font-medium">Datos de prueba:</span><br/>
-              Usuario: jose | Contraseña: jose
-            </p>
-          </div>
         </div>
       </div>
     </div>

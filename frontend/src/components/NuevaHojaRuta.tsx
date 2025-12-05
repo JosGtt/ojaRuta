@@ -288,11 +288,21 @@ const NuevaHojaRuta: React.FC = () => {
   };
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-[var(--color-vino)] via-[var(--color-vino-oscuro)] to-[var(--color-vino)] p-6 text-white" style={{backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(255,255,255,0.03) 0%, transparent 50%)'}}>
+  <div className="min-h-screen p-6 text-white">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.15)] rounded-lg shadow-lg backdrop-blur-sm p-6 mb-6">
+        <div className="rounded-2xl shadow-lg p-6 mb-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
-            <button onClick={() => navigate('/dashboard')} className="flex items-center px-4 py-2 text-white/80 hover:text-white bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.15)] rounded-lg transition-all">
+            <button onClick={() => navigate('/dashboard')} className="flex items-center px-4 py-2 text-white/80 hover:text-white hover:bg-[rgba(255,255,255,0.08)] rounded-lg transition-all" style={{
+              background: 'rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255, 255, 255, 0.12)'
+            }}>
               <VolverIcon width={20} height={20} className="mr-2" fill="currentColor" />
               Volver al Dashboard
             </button>
@@ -310,13 +320,22 @@ const NuevaHojaRuta: React.FC = () => {
         </div>
 
         {!showPreview ? (
-          <div className="bg-[rgba(255,255,255,0.06)] border border-[rgba(255,255,255,0.12)] rounded-lg shadow-lg backdrop-blur-sm p-6">
+          <div className="rounded-2xl shadow-lg p-6" style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)'
+          }}>
             <h1 className="text-2xl font-bold mb-6">Nueva Hoja de Ruta</h1>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Número H.R. *</label>
-                  <input type="text" name="numero_hr" value={formData.numero_hr} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-lg focus:border-white/40 focus:bg-white/15 transition-all" />
+                  <input type="text" name="numero_hr" value={formData.numero_hr} onChange={handleInputChange} required className="w-full px-3 py-2 border border-white/20 text-white placeholder-white/50 rounded-lg focus:border-white/40 transition-all" style={{
+                    background: 'rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
+                  }} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Nombre del Solicitante *</label>

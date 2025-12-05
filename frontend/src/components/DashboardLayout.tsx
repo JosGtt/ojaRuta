@@ -81,7 +81,12 @@ const DashboardLayout: React.FC = () => {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: sidebarWidth }}>
   {/* Header */}
-  <header className="h-28 bg-[var(--color-vino)] shadow-none animate-fade-in-down">
+  <header className="h-28 shadow-none animate-fade-in-down" style={{
+    background: 'rgba(0, 0, 0, 0.3)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.15)'
+  }}>
     {/* central container matches main content width so header elements align with page content */}
     <div className="w-full max-w-6xl mx-auto px-4 h-full flex items-center">
     {/* left spacer removed — rely on normal layout so header and main content share the same centered container */}
@@ -90,7 +95,12 @@ const DashboardLayout: React.FC = () => {
       <div className="flex-1 flex items-center justify-center">
         <div className="w-full">
           <div className="relative">
-            <div className="flex items-center bg-[rgba(0,0,0,0.18)] rounded-2xl px-4 py-3 shadow-inner">
+            <div className="flex items-center rounded-2xl px-4 py-3 shadow-inner" style={{
+              background: 'rgba(0, 0, 0, 0.25)',
+              backdropFilter: 'blur(15px)',
+              WebkitBackdropFilter: 'blur(15px)',
+              border: '1px solid rgba(255, 255, 255, 0.18)'
+            }}>
               <span className="text-white opacity-80 mr-3 flex items-center">
                 <LupayIcon width={20} height={20} />
               </span>
@@ -119,8 +129,13 @@ const DashboardLayout: React.FC = () => {
                     <UsuarioIcon width={28} height={28} />
                   </button>
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-40 bg-[rgba(0,0,0,0.25)] backdrop-blur rounded-lg shadow-lg border border-[rgba(255,255,255,0.06)] z-50">
-                      <button onClick={handleLogout} className="w-full text-left px-4 py-3 hover:bg-[var(--color-vino)]/10 text-white flex items-center gap-2">
+                    <div className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg z-50" style={{
+                      background: 'rgba(0, 0, 0, 0.4)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(255, 255, 255, 0.18)'
+                    }}>
+                      <button onClick={handleLogout} className="w-full text-left px-4 py-3 hover:bg-[rgba(255,255,255,0.08)] text-white flex items-center gap-2 rounded-lg">
                         <CerrarLogo width={16} height={16} fill="currentColor" />
                         Cerrar sesión
                       </button>
@@ -155,7 +170,12 @@ const DashboardLayout: React.FC = () => {
           </div>
         </main>
         {/* Footer institucional (use same vino background) */}
-        <footer className="h-14 flex items-center justify-center bg-[var(--color-vino)] text-base text-white font-extrabold animate-fade-in-up tracking-wider">
+        <footer className="h-14 flex items-center justify-center text-base text-white font-extrabold animate-fade-in-up tracking-wider" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           Sistema SEDEGES La Paz &copy; 2025
         </footer>
       </div>

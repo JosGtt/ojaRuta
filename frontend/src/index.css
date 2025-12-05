@@ -35,9 +35,10 @@
   --app-gradient-start: linear-gradient(90deg, var(--color-esmeralda-600) 0%, var(--color-vino) 100%);
 }
 
-/* Global background: usar un solo color vino uniforme en toda la app */
+/* Global background: degradado igual al login en toda la app */
 body, #root {
-  background: var(--color-vino);
+  background: linear-gradient(135deg, #007A3D 0%, rgba(216, 30, 5, 0.3) 50%, #D81E05 100%);
+  background-attachment: fixed;
   color: var(--color-blanco);
   min-height: 100vh;
 }
@@ -48,32 +49,59 @@ body, #root {
 
 /* Force uniform background and remove shadows/borders on top-level layout elements */
 header, aside, main, footer, .app-root {
-  background: var(--color-vino) !important;
+  background: transparent !important;
   box-shadow: none !important;
   border: none !important;
 }
 
 /* Make search input visually identical to page background unless explicitly styled */
 .search-unified {
-  background: var(--color-vino) !important;
-  border: none !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 .card {
-  background: rgba(255,255,255,0.03);
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
-  border: 1px solid rgba(255,255,255,0.03);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .card-soft {
-  background: rgba(255,255,255,0.02);
-  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
   padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .muted {
   color: var(--color-gris-medio);
+}
+
+/* Glassmorphism inputs */
+input[type="text"],
+input[type="tel"],
+input[type="date"],
+input[type="number"],
+textarea,
+select {
+  background: rgba(0, 0, 0, 0.25) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  background: rgba(0, 0, 0, 0.3) !important;
 }
 
 /* small fade-in utility used by user menu */

@@ -137,10 +137,15 @@ const GestionEnvios: React.FC = () => {
     : envios;
 
   return (
-    <div style={{ background: 'var(--color-vino-oscuro)' }} className="p-6 text-white min-h-screen">
+    <div className="p-6 text-white min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="w-12 h-12 flex items-center justify-center rounded-sm" style={{ background: 'var(--color-esmeralda)' }}>
             <HistorialIcon width={24} height={24} fill="white" />
           </div>
@@ -163,12 +168,23 @@ const GestionEnvios: React.FC = () => {
       )}
 
       {/* Filtros */}
-      <div className="mb-6 flex items-center gap-4">
+      <div className="mb-6 flex items-center gap-4 p-4 rounded-xl" style={{
+        background: 'rgba(0, 0, 0, 0.25)',
+        backdropFilter: 'blur(15px)',
+        WebkitBackdropFilter: 'blur(15px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         <label className="text-white/90 font-medium">Filtrar por estado:</label>
         <select
           value={filtroEstado}
           onChange={(e) => setFiltroEstado(e.target.value)}
-          className="p-2 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] rounded-sm text-white"
+          className="p-2 border rounded-xl text-white"
+          style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderColor: 'rgba(255, 255, 255, 0.2)'
+          }}
         >
           <option value="">Todos los estados</option>
           {estadosDisponibles.map(estado => (
@@ -202,7 +218,12 @@ const GestionEnvios: React.FC = () => {
               const IconComponent = estadoInfo.icon;
               
               return (
-                <div key={envio.id} className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+                <div key={envio.id} className="rounded-2xl p-6" style={{
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                }}>
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     
                     {/* Información del Destinatario */}

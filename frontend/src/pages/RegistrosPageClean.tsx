@@ -59,14 +59,23 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
-        <div className="bg-[rgba(0,0,0,0.18)] rounded-2xl p-4">
+        <div className="rounded-2xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           {hojas.length === 0 ? (
             <div className="text-gray-300">No se encontraron hojas de ruta.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm bg-transparent rounded-md overflow-hidden text-white">
                 <thead>
-                  <tr className="bg-[rgba(255,255,255,0.04)]">
+                  <tr style={{
+                    background: 'rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
+                  }}>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">N° H.R.</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Nombre</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Teléfono</th>
@@ -81,7 +90,7 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
                 </thead>
                 <tbody>
                   {hojas.map(hr => (
-                    <tr key={hr.id} className="transition hover:bg-[rgba(255,255,255,0.02)] cursor-pointer">
+                    <tr key={hr.id} className="transition hover:bg-[rgba(255,255,255,0.05)] cursor-pointer">
                       <td className="p-3 border-b border-white/6 font-mono text-white">{hr.numero_hr}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.nombre_solicitante || '-'}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.telefono_celular || '-'}</td>

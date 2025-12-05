@@ -228,7 +228,12 @@ const NotificacionesPage = () => {
   return (
     <div className="w-full min-h-screen bg-transparent">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--color-vino)] to-[var(--color-vino-oscuro)] rounded-3xl p-8 mb-6 text-white shadow-2xl">
+      <div className="rounded-3xl p-8 mb-6 text-white shadow-2xl" style={{
+        background: 'rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(25px)',
+        WebkitBackdropFilter: 'blur(25px)',
+        border: '1px solid rgba(255, 255, 255, 0.18)'
+      }}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
@@ -286,7 +291,12 @@ const NotificacionesPage = () => {
           </div>
         </div>
         
-        <div className="bg-[rgba(0,0,0,0.18)] rounded-xl p-4">
+        <div className="rounded-xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <button 
             onClick={marcarTodasLeidas}
             disabled={noLeidasCount === 0}
@@ -298,7 +308,12 @@ const NotificacionesPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="bg-[rgba(0,0,0,0.18)] rounded-xl p-4 mb-6">
+      <div className="rounded-xl p-4 mb-6" style={{
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         <div className="flex flex-wrap gap-3">
           <button 
             onClick={() => setFiltro('todas')}
@@ -342,7 +357,12 @@ const NotificacionesPage = () => {
       </div>
 
       {/* Lista de notificaciones */}
-      <div className="bg-[rgba(0,0,0,0.18)] rounded-xl p-6">
+      <div className="rounded-xl p-6" style={{
+        background: 'rgba(0, 0, 0, 0.3)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.15)'
+      }}>
         {loading ? (
           <div className="text-center py-12 text-white/60">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>

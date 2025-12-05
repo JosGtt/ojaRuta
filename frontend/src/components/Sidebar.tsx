@@ -32,15 +32,26 @@ const Sidebar = ({ expanded, onEnter, onLeave, fixed, onFixToggle, onSelectSecti
 }) => {
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen flex flex-col bg-[var(--color-vino)] transition-all duration-300 z-40 ${
+      className={`fixed left-0 top-0 h-screen flex flex-col transition-all duration-300 z-40 ${
         expanded ? "w-64" : "w-28"
       } ${fixed ? "" : "hover:w-64"}`}
       onMouseEnter={!fixed ? onEnter : undefined}
       onMouseLeave={!fixed ? onLeave : undefined}
+      style={{
+        background: 'rgba(0, 0, 0, 0.35)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.15)'
+      }}
     >
       {/* inner wrapper gives a rounded border around the whole menu in both states */}
       <div className={`h-full ${expanded ? 'p-3' : 'py-4 px-3'}`}>
-  <div className={`h-full rounded-2xl border p-3 flex flex-col transition-all duration-200 bg-[var(--color-vino-oscuro)] border-[rgba(255,255,255,0.04)]`}>
+  <div className={`h-full rounded-2xl border p-3 flex flex-col transition-all duration-200`} style={{
+    background: 'rgba(0, 0, 0, 0.25)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.12)'
+  }}>
           <div className="flex items-center justify-center py-3 relative flex-col">
             {/* Show raster logo at the top to match requested design */}
             <img
@@ -71,8 +82,16 @@ const Sidebar = ({ expanded, onEnter, onLeave, fixed, onFixToggle, onSelectSecti
                 className="relative w-full text-left transition-colors duration-200"
               >
                 {/* inner box: when active show a filled rounded rect similar to mockup */}
-                <div className={`flex items-center gap-4 px-4 ${expanded ? 'py-3' : 'py-3'} rounded-xl ${activeSection === item.id ? 'bg-[var(--color-vino)]/90' : 'hover:bg-[var(--color-vino)]/80'} text-lg font-semibold text-[var(--color-blanco)]`}>
-                  <span className={`${activeSection === item.id ? 'w-12 h-12' : 'w-8 h-8'} bg-[var(--color-vino-claro)]/15 rounded-lg flex items-center justify-center ${activeSection === item.id ? 'border border-[rgba(255,255,255,0.06)]' : ''}`}>
+                <div className={`flex items-center gap-4 px-4 ${expanded ? 'py-3' : 'py-3'} rounded-xl ${activeSection === item.id ? '' : 'hover:bg-[rgba(255,255,255,0.08)]'} text-lg font-semibold text-[var(--color-blanco)]`} style={activeSection === item.id ? {
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.18)'
+                } : {}}>
+                  <span className={`${activeSection === item.id ? 'w-12 h-12' : 'w-8 h-8'} rounded-lg flex items-center justify-center`} style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: activeSection === item.id ? '1px solid rgba(255, 255, 255, 0.2)' : 'none'
+                  }}>
                     {item.icon}
                   </span>
                   {expanded && <span>{item.label}</span>}

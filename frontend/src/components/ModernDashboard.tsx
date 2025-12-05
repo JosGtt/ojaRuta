@@ -218,33 +218,40 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
   }
 
   return (
-    <div style={{ background: 'var(--color-vino-oscuro)' }} className="min-h-screen text-white p-6">
+    <div className="min-h-screen text-white p-6">
       {/* Header Ejecutivo */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Panel Ejecutivo</h1>
-            <p className="text-white/70 text-lg">Sistema de Gestión Documental - SEDEGES La Paz</p>
-          </div>
-          <div className="text-right">
-            <div className="text-white/60 text-sm">
-              {ultimaActualizacion ? 'Última actualización' : 'Actualizado el'}
+        <div className="rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Panel Ejecutivo</h1>
+              <p className="text-white/70 text-lg">Sistema de Gestión Documental - SEDEGES La Paz</p>
             </div>
-            <div className="text-white font-medium">
-              {ultimaActualizacion 
-                ? ultimaActualizacion.toLocaleDateString('es-BO', { 
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    day: '2-digit',
-                    month: 'short'
-                  })
-                : new Date().toLocaleDateString('es-BO', { 
-                    weekday: 'long', 
-                    year: 'numeric',
-                    month: 'long', 
-                    day: 'numeric' 
-                  })
-              }
+            <div className="text-right">
+              <div className="text-white/60 text-sm">
+                {ultimaActualizacion ? 'Última actualización' : 'Actualizado el'}
+              </div>
+              <div className="text-white font-medium">
+                {ultimaActualizacion 
+                  ? ultimaActualizacion.toLocaleDateString('es-BO', { 
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      day: '2-digit',
+                      month: 'short'
+                    })
+                  : new Date().toLocaleDateString('es-BO', { 
+                      weekday: 'long', 
+                      year: 'numeric',
+                      month: 'long', 
+                      day: 'numeric' 
+                    })
+                }
+              </div>
             </div>
           </div>
         </div>
@@ -253,7 +260,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
       {/* Indicadores Principales */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {/* Total de Documentos */}
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+        <div className="rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-white/70 text-sm font-medium mb-2">TOTAL DOCUMENTOS</div>
@@ -267,7 +279,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
         </div>
 
         {/* En Proceso */}
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+        <div className="rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-white/70 text-sm font-medium mb-2">EN PROCESO</div>
@@ -281,7 +298,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
         </div>
 
         {/* Completados */}
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+        <div className="rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-white/70 text-sm font-medium mb-2">COMPLETADOS</div>
@@ -295,7 +317,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
         </div>
 
         {/* Críticos */}
-        <div className="bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+        <div className="rounded-2xl p-6" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center justify-between">
             <div>
               <div className="text-white/70 text-sm font-medium mb-2">CRÍTICOS</div>
@@ -312,7 +339,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
       {/* Panel Principal - Documentos Recientes */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
         {/* Tabla de Documentos Recientes */}
-        <div className="xl:col-span-2 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm">
+        <div className="xl:col-span-2 rounded-2xl" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="p-6 border-b border-[rgba(255,255,255,0.06)]">
             <div className="flex items-center justify-between">
               <div>
@@ -321,7 +353,13 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
               </div>
               <button 
                 onClick={() => onNavigate?.('registros')}
-                className="px-4 py-2 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] rounded-sm text-white/90 text-sm font-medium transition-all"
+                className="px-4 py-2 hover:bg-[rgba(255,255,255,0.08)] rounded-lg text-white/90 text-sm font-medium transition-all"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                }}
               >
                 Ver Todos
               </button>
@@ -332,7 +370,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
             {hojasRecientes.length > 0 ? (
               <div className="space-y-3">
                 {hojasRecientes.slice(0, 5).map((hoja) => (
-                  <div key={hoja.id} className="flex items-center justify-between p-4 bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.05)] rounded-sm hover:bg-[rgba(255,255,255,0.05)] transition-all">
+                  <div key={hoja.id} className="flex items-center justify-between p-4 rounded-xl hover:bg-[rgba(255,255,255,0.05)] transition-all" style={{
+                    background: 'rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)'
+                  }}>
                     <div className="flex items-center space-x-4">
                       <div className="w-10 h-10 flex items-center justify-center rounded-sm" style={{ background: 'var(--color-esmeralda)' }}>
                         <span className="text-white font-bold text-sm">{hoja.numero_hr.slice(-2)}</span>
@@ -369,7 +412,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
         {/* Panel de Acciones Rápidas */}
         <div className="space-y-6">
           {/* Crear Nueva H.R. */}
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+          <div className="rounded-2xl p-6" style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)'
+          }}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">Acciones Rápidas</h3>
@@ -380,7 +428,7 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
             <div className="space-y-3">
               <button 
                 onClick={() => onNavigate?.('nueva-hoja')}
-                className="w-full flex items-center justify-center gap-3 p-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 rounded-sm text-white font-medium transition-all"
+                className="w-full flex items-center justify-center gap-3 p-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 rounded-xl text-white font-medium transition-all"
               >
                 <AñadirIcon width={18} height={18} fill="white" />
                 Nueva Hoja de Ruta
@@ -388,7 +436,13 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
               
               <button 
                 onClick={() => onNavigate?.('registros')}
-                className="w-full flex items-center justify-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] rounded-sm text-white font-medium transition-all"
+                className="w-full flex items-center justify-center gap-3 p-3 hover:bg-[rgba(255,255,255,0.08)] rounded-xl text-white font-medium transition-all"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                }}
               >
                 <RegistrosIcon width={18} height={18} fill="white" />
                 Ver Registros
@@ -396,7 +450,13 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
               
               <button 
                 onClick={() => onNavigate?.('enviar')}
-                className="w-full flex items-center justify-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] rounded-sm text-white font-medium transition-all"
+                className="w-full flex items-center justify-center gap-3 p-3 hover:bg-[rgba(255,255,255,0.08)] rounded-xl text-white font-medium transition-all"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                }}
               >
                 <ArchivoIcon width={18} height={18} fill="white" />
                 Gestionar Envíos
@@ -404,7 +464,13 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
               
               <button 
                 onClick={() => onNavigate?.('historial')}
-                className="w-full flex items-center justify-center gap-3 p-3 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] rounded-sm text-white font-medium transition-all"
+                className="w-full flex items-center justify-center gap-3 p-3 hover:bg-[rgba(255,255,255,0.08)] rounded-xl text-white font-medium transition-all"
+                style={{
+                  background: 'rgba(0, 0, 0, 0.25)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)'
+                }}
               >
                 <HistorialIcon width={18} height={18} fill="white" />
                 Ver Historial
@@ -413,7 +479,12 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
           </div>
 
           {/* Notificaciones */}
-          <div className="bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-sm p-6">
+          <div className="rounded-2xl p-6" style={{
+            background: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.15)'
+          }}>
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-white">Notificaciones</h3>
@@ -430,11 +501,16 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
               {notificaciones.slice(0, 3).map((notif) => (
                 <div 
                   key={notif.id} 
-                  className={`p-3 rounded-sm border ${
+                  className={`p-3 rounded-xl border ${
                     notif.leida 
-                      ? 'bg-[rgba(255,255,255,0.02)] border-[rgba(255,255,255,0.05)]' 
+                      ? 'border-[rgba(255,255,255,0.1)]' 
                       : 'bg-blue-500/10 border-blue-500/20'
                   }`}
+                  style={notif.leida ? {
+                    background: 'rgba(0, 0, 0, 0.2)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)'
+                  } : {}}
                 >
                   <div className="text-white text-sm">{notif.mensaje}</div>
                   <div className="text-white/50 text-xs mt-1">
@@ -446,7 +522,13 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
             
             <button 
               onClick={() => onNavigate?.('notificaciones')}
-              className="w-full mt-4 p-2 bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.1)] rounded-sm text-white/90 text-sm font-medium transition-all"
+              className="w-full mt-4 p-2 hover:bg-[rgba(255,255,255,0.08)] rounded-xl text-white/90 text-sm font-medium transition-all"
+              style={{
+                background: 'rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)'
+              }}
             >
               Ver Todas las Notificaciones
             </button>
