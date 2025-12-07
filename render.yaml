@@ -1,0 +1,14 @@
+# Render.com Build Configuration
+# Este archivo le dice a Render cómo construir y ejecutar tu backend
+
+# Build Command
+npm install
+
+# Start Command  
+npm start
+
+# Environment
+NODE_VERSION=18
+
+# Root Directory (importante para que Render sepa que el backend está en la carpeta backend/)
+ROOT_DIRECTORY=backend
