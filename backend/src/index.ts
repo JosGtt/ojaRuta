@@ -14,11 +14,11 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3001');
 
 // Middleware
-const allowedOrigins = [
+const allowedOrigins: string[] = [
   'http://localhost:5173',
-  'https://super-bejinho-ba0363.netlify.app',
-  process.env.CORS_ORIGIN
-].filter(Boolean);
+  'https://super-beijinho-ba0363.netlify.app',
+  process.env.CORS_ORIGIN || ''
+].filter(origin => origin !== '');
 
 app.use(cors({
   origin: allowedOrigins,
