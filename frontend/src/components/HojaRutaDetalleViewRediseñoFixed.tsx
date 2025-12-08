@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import HojaRutaPreview from './HojaRutaPreview';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
@@ -80,7 +81,7 @@ const HojaRutaDetalleViewRediseño: React.FC<HojaRutaDetalleViewProps> = ({ hoja
   const fetchHojaCompleta = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:3001/api/hojas-ruta/${hoja.id}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/hojas-ruta/${hoja.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHojaCompleta(response.data);
@@ -94,7 +95,7 @@ const HojaRutaDetalleViewRediseño: React.FC<HojaRutaDetalleViewProps> = ({ hoja
 
   const fetchDestinos = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/destinos', {
+      const response = await axios.get(`${API_BASE_URL}/api/destinos`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -122,7 +123,7 @@ const HojaRutaDetalleViewRediseño: React.FC<HojaRutaDetalleViewProps> = ({ hoja
     setActualizandoEstado(true);
     try {
       await axios.patch(
-        `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/estado`,
+        `${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}/estado`,
         { estado: nuevoEstado },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -145,7 +146,7 @@ const HojaRutaDetalleViewRediseño: React.FC<HojaRutaDetalleViewProps> = ({ hoja
       setActualizandoEstado(true);
       
       const response = await axios.patch(
-        `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/ubicacion`,
+        `${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}/ubicacion`,
         { 
           ubicacion_actual: nuevaUbicacion,
           responsable_actual: responsable

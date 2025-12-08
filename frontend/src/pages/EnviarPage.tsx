@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import EnviarIcon from '../assets/enviar';
 import SendIcon from '../assets/send';
 import ArchivoIcon from '../assets/archivo';
@@ -29,7 +30,7 @@ const EnviarPage: React.FC = () => {
       
       try {
         console.log('📋 Cargando hojas de ruta...');
-        const res = await axios.get('http://localhost:3001/api/hojas-ruta', { 
+        const res = await axios.get(`${API_BASE_URL}/api/hojas-ruta`, { 
           headers: { Authorization: `Bearer ${token}` } 
         });
         setHojas(res.data || []);
@@ -92,7 +93,7 @@ const EnviarPage: React.FC = () => {
 
       console.log('📦 Payload:', payload);
 
-      const res = await axios.post('http://localhost:3001/api/enviar', payload, {
+      const res = await axios.post(`${API_BASE_URL}/api/enviar`, payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'

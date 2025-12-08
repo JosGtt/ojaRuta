@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
  // Project SVG icons 
 import CheckIcon from '../assets/Check1';
@@ -76,7 +77,7 @@ const ModernDashboard: React.FC<Props> = ({ onNavigate }) => {
       console.log('🔑 Token disponible:', token ? 'SÍ' : 'NO');
       
       // Obtener hojas de ruta básicas
-      const response = await axios.get('http://localhost:3001/api/hojas-ruta', {
+      const response = await axios.get(`${API_BASE_URL}/api/hojas-ruta`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

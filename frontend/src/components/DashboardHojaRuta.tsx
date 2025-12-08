@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
 import VolverIcon from '../assets/Flecha down';
@@ -25,7 +26,7 @@ const DashboardHojaRuta: React.FC = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await axios.get(`http://localhost:3001/api/hojas-ruta/${id}`, {
+        const res = await axios.get(`${API_BASE_URL}/api/hojas-ruta/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setHoja(res.data);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import HistorialIcon from '../assets/historial';
 import CheckIcon from '../assets/Check1';
 import EditarIcon from '../assets/editar';
@@ -39,7 +40,7 @@ const HistorialPage = () => {
         setLoading(true);
         
         // Obtener historial por categorías
-        const response = await axios.get('http://localhost:3001/api/historial/categorias', {
+        const response = await axios.get(`${API_BASE_URL}/api/historial/categorias`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         

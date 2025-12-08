@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config/api';
 import NotificationIcon from '../assets/notification';
 import AlertaIcon from '../assets/alerta';
 import CheckIcon from '../assets/Check';
@@ -88,7 +89,7 @@ const NotificacionesPage = () => {
       // Obtener notificaciones locales primero
       const notificacionesLocales = getNotificacionesLocales();
       
-      const response = await axios.get('http://localhost:3001/api/hojas-ruta/dashboard/tiempo-real', {
+      const response = await axios.get(`${API_BASE_URL}/api/hojas-ruta/dashboard/tiempo-real`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -153,7 +154,7 @@ const NotificacionesPage = () => {
   // Marcar notificación como leída
   const marcarComoLeida = async (notifId: number) => {
     try {
-      await axios.patch(`http://localhost:3001/api/notificaciones/${notifId}/leer`, {}, {
+      await axios.patch(`${API_BASE_URL}/api/notificaciones/${notifId}/leer`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -177,7 +178,7 @@ const NotificacionesPage = () => {
   // Marcar todas como leídas
   const marcarTodasLeidas = async () => {
     try {
-      await axios.patch('http://localhost:3001/api/notificaciones/marcar-todas-leidas', {}, {
+      await axios.patch(`${API_BASE_URL}/api/notificaciones/marcar-todas-leidas`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       

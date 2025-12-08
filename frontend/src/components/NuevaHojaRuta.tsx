@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'react-toastify';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
@@ -115,7 +116,7 @@ const NuevaHojaRuta: React.FC = () => {
     const cargarDestinos = async () => {
       try {
         console.log('🔄 Cargando destinos disponibles...');
-        const response = await axios.get('http://localhost:3001/api/destinos');
+        const response = await axios.get(`${API_BASE_URL}/api/destinos`);
         console.log('📥 Respuesta de destinos:', response.data);
         if (response.data.success) {
           // Aplanar las categorías en un solo array y agregar tipos
@@ -195,7 +196,7 @@ const NuevaHojaRuta: React.FC = () => {
         ubicacion_actual: formData.destino_principal || 'SEDEGES - Sede Central', // Usar destino principal como ubicación inicial
         responsable_actual: formData.destino_principal ? `Responsable de ${formData.destino_principal}` : 'Sistema SEDEGES'
       };
-      await axios.post('http://localhost:3001/api/hojas-ruta', payload, {
+      await axios.post(`${API_BASE_URL}/api/hojas-ruta`, payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import HojaRutaPreview from './HojaRutaPreview';
 import jsPDF from 'jspdf';
 import domtoimage from 'dom-to-image';
@@ -108,7 +109,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
   const fetchDestinos = async () => {
     try {
       setLoadingDestinos(true);
-      const response = await axios.get('http://localhost:3001/api/destinos');
+      const response = await axios.get(`${API_BASE_URL}/api/destinos`);
       
       console.log('📦 Respuesta de destinos:', response.data);
       
@@ -182,7 +183,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       console.log('🔄 Enviando al backend:', updateData);
       
       // Enviar actualización al backend
-      const response = await axios.put(`http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}`, updateData, {
+      const response = await axios.put(`${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}`, updateData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -219,7 +220,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       console.log('📝 Datos completos a guardar:', formData);
       
       // Enviar actualización al backend
-      const response = await axios.put(`http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}`, formData, {
+      const response = await axios.put(`${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}`, formData, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -864,11 +865,11 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       
       console.log('🔍 Obteniendo detalles de hoja de ruta:', {
         hojaId: hoja.id,
-        url: `http://localhost:3001/api/hojas-ruta/${hoja.id}`,
+        url: `${API_BASE_URL}/api/hojas-ruta/${hoja.id}`,
         hasToken: !!token
       });
       
-      const response = await axios.get(`http://localhost:3001/api/hojas-ruta/${hoja.id}`, {
+      const response = await axios.get(`${API_BASE_URL}/api/hojas-ruta/${hoja.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -932,7 +933,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       const estadoBackend = mapaEstadoBackend[nuevoEstado] || 'pendiente';
 
       console.log('🔄 Preparando solicitud:', {
-        endpoint: `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/estado`,
+        endpoint: `${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}/estado`,
         nuevoEstado_frontend: nuevoEstado,
         estadoBackend_mapeado: estadoBackend,
         payload: { estado_cumplimiento: estadoBackend, estado: nuevoEstado },
@@ -940,7 +941,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       });
 
       const response = await axios.patch(
-        `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/estado`,
+        `${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}/estado`,
         { 
           estado_cumplimiento: estadoBackend,
           estado: nuevoEstado
@@ -1004,7 +1005,7 @@ const HojaRutaDetalleView: React.FC<HojaRutaDetalleViewProps> = ({ hoja, onBack 
       });
       
       const response = await axios.patch(
-        `http://localhost:3001/api/hojas-ruta/${hojaCompleta.id}/ubicacion`,
+        `${API_BASE_URL}/api/hojas-ruta/${hojaCompleta.id}/ubicacion`,
         { 
           ubicacion_actual: nuevaUbicacion,
           responsable_actual: responsable

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import SendIcon from '../assets/send';
 import ArchivoIcon from '../assets/archivo';
 import DocumentosIcon from '../assets/documentos';
@@ -48,13 +49,13 @@ const EnviarPageReestructurado: React.FC = () => {
       setLoadingData(true);
       try {
         // Cargar hojas de ruta
-        const hojasResponse = await axios.get('http://localhost:3001/api/hojas-ruta', {
+        const hojasResponse = await axios.get(`${API_BASE_URL}/api/hojas-ruta`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setHojas(hojasResponse.data || []);
 
         // Cargar destinos
-        const destinosResponse = await axios.get('http://localhost:3001/api/enviar/destinos', {
+        const destinosResponse = await axios.get(`${API_BASE_URL}/api/enviar/destinos`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setDestinos(destinosResponse.data.destinos || []);
@@ -99,7 +100,7 @@ const EnviarPageReestructurado: React.FC = () => {
         archivos
       };
 
-      const response = await axios.post('http://localhost:3001/api/enviar', payload, {
+      const response = await axios.post(`${API_BASE_URL}/api/enviar`, payload, {
         headers: { 
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'

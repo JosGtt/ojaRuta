@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import SendIcon from '../assets/send';
 import CheckIcon from '../assets/Check';
 import CirculoOnIcon from '../assets/circuloOn';
@@ -47,7 +48,7 @@ const GestionEnvios: React.FC = () => {
       
       setLoading(true);
       try {
-        const response = await axios.get('http://localhost:3001/api/enviar', {
+        const response = await axios.get(`${API_BASE_URL}/api/enviar`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setEnvios(response.data.envios || []);
@@ -82,10 +83,10 @@ const GestionEnvios: React.FC = () => {
       }
 
       console.log('📦 Payload a enviar:', payload);
-      console.log('🌐 URL:', `http://localhost:3001/api/enviar/${envioId}/estado`);
+      console.log('🌐 URL:', `${API_BASE_URL}/api/enviar/${envioId}/estado`);
 
       const response = await axios.put(
-        `http://localhost:3001/api/enviar/${envioId}/estado`, 
+        `${API_BASE_URL}/api/enviar/${envioId}/estado`, 
         payload,
         { 
           headers: { 
