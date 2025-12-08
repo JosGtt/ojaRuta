@@ -20,47 +20,25 @@ interface HojaRuta {
   responsable_actual?: string;
 }
 
-interface RegistrosPageProps {
+interface RegistrosPageCleanProps {
   onHojaSelected?: (hoja: HojaRuta) => void;
 }
 
-const RegistrosPage: React.FC<RegistrosPageProps> = ({ onHojaSelected }) => {
+const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected }) => {
   const { token } = useAuth();
   const { query } = useSearch();
   const [hojas, setHojas] = useState<HojaRuta[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Función para resaltar coincidencias de búsqueda
-  const highlightMatch = (text: string | null, searchQuery: string) => {
-    if (!text || !searchQuery) return text || '';
-    
-    const regex = new RegExp(`(${searchQuery})`, 'gi');
-    const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
-      regex.test(part) ? 
-        <span key={index} className="bg-yellow-400 text-black px-1 rounded font-semibold">{part}</span> : 
-        part
-    );
-  };
-
-  // Verificar si la búsqueda coincide con un campo específico
-  const isFieldMatch = (value: string | null, searchQuery: string) => {
-    if (!value || !searchQuery) return false;
-    return value.toLowerCase().includes(searchQuery.toLowerCase());
-  };
-
   const fetchHojas = async (search = '') => {
     setLoading(true);
     setError('');
     try {
-      console.log('🔍 Buscando con query:', search);
       const res = await axios.get('http://localhost:3001/api/hojas-ruta', {
         params: search ? { query: search } : {},
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('📋 Resultados encontrados:', res.data.length);
       setHojas(res.data);
     } catch (err) {
       setError('Error al cargar hojas de ruta');
@@ -75,49 +53,29 @@ const RegistrosPage: React.FC<RegistrosPageProps> = ({ onHojaSelected }) => {
   }, [query]);
 
   return (
-    <div className="w-full">
+  <div className="w-full">
       {loading ? (
         <div className="text-gray-300">Cargando...</div>
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
-        <div className="bg-[rgba(0,0,0,0.18)] rounded-2xl p-4">
-          {/* Header de información de búsqueda */}
-          {query && (
-            <div className="mb-4 p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-white font-medium">
-                    🔍 Buscando: "<span className="text-yellow-300">{query}</span>"
-                  </h3>
-                  <p className="text-white/70 text-sm">
-                    Se busca en: N° H.R., Referencia, Procedencia, Ubicación, Nombre del solicitante, Teléfono
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-bold text-white">{hojas.length}</div>
-                  <div className="text-xs text-white/60">resultados</div>
-                </div>
-              </div>
-            </div>
-          )}
-          
+        <div className="rounded-2xl p-4" style={{
+          background: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255, 255, 255, 0.15)'
+        }}>
           {hojas.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-gray-300">
-                {query ? `No se encontraron resultados para "${query}"` : 'No se encontraron hojas de ruta.'}
-              </div>
-              {query && (
-                <div className="text-gray-400 text-sm mt-2">
-                  Intenta buscar por número de H.R., referencia, ubicación, nombre o teléfono
-                </div>
-              )}
-            </div>
+            <div className="text-gray-300">No se encontraron hojas de ruta.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm bg-transparent rounded-md overflow-hidden text-white">
                 <thead>
-                  <tr className="bg-[rgba(255,255,255,0.04)]">
+                  <tr style={{
+                    background: 'rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)'
+                  }}>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">N° H.R.</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Nombre</th>
                     <th className="p-3 text-left text-sm font-semibold text-white/80">Teléfono</th>
@@ -132,7 +90,7 @@ const RegistrosPage: React.FC<RegistrosPageProps> = ({ onHojaSelected }) => {
                 </thead>
                 <tbody>
                   {hojas.map(hr => (
-                    <tr key={hr.id} className="transition hover:bg-[rgba(255,255,255,0.02)] cursor-pointer">
+                    <tr key={hr.id} className="transition hover:bg-[rgba(255,255,255,0.05)] cursor-pointer">
                       <td className="p-3 border-b border-white/6 font-mono text-white">{hr.numero_hr}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.nombre_solicitante || '-'}</td>
                       <td className="p-3 border-b border-white/6 text-white">{hr.telefono_celular || '-'}</td>
@@ -176,83 +134,4 @@ const RegistrosPage: React.FC<RegistrosPageProps> = ({ onHojaSelected }) => {
   );
 };
 
-export default RegistrosPage;
-        setHojas(res.data);
-      } catch (err) {
-        setError('Error al cargar hojas de ruta');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    useEffect(() => {
-      // fetch initial and whenever the shared header query changes
-      fetchHojas(query);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query]);
-
-    return (
-      <div className="w-full max-w-6xl mx-auto px-4 py-6">
-        {loading ? (
-          <div className="text-gray-300">Cargando...</div>
-        ) : error ? (
-          <div className="text-red-400">{error}</div>
-        ) : (
-          <div className="bg-[rgba(0,0,0,0.18)] rounded-2xl p-4">
-            {hojas.length === 0 ? (
-              <div className="text-gray-300">No se encontraron hojas de ruta.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm bg-white rounded-md overflow-hidden">
-                  <thead>
-                    <tr className="bg-gray-100">
-                      <th className="p-2 border">N° H.R.</th>
-                      <th className="p-2 border">Referencia</th>
-                      <th className="p-2 border">Procedencia</th>
-                      <th className="p-2 border">Prioridad</th>
-                      <th className="p-2 border">Estado</th>
-                      <th className="p-2 border">Fecha Ingreso</th>
-                      <th className="p-2 border">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {hojas.map(hr => (
-                      <tr key={hr.id} className="hover:bg-blue-50 transition cursor-pointer">
-                        <td className="p-2 border font-mono">{hr.numero_hr}</td>
-                        <td className="p-2 border">{hr.referencia}</td>
-                        <td className="p-2 border">{hr.procedencia}</td>
-                        <td className="p-2 border capitalize">{hr.prioridad}</td>
-                        <td className="p-2 border capitalize">{hr.estado}</td>
-                        <td className="p-2 border">{hr.fecha_ingreso?.slice(0,10)}</td>
-                        <td className="p-2 border">
-                          <button
-                            onClick={() => navigate(`/hoja/${hr.id}`)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-xs"
-                          >
-                            Ver Detalle
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  export default RegistrosPage;
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-
-    };
-
-    export default RegistrosPage;
+export default RegistrosPageClean;
