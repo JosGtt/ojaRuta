@@ -53,13 +53,39 @@ const HistorialPage = () => {
         // Fallback a datos de ejemplo si hay error
         const mockData = {
           añadidos: [
-            { id: 1, tipo: 'añadido' as const, numero_hr: 'Sin datos', referencia: 'No hay conexión con el servidor', procedencia: '', fecha: new Date().toISOString(), usuario_nombre: 'Sistema' }
+            { 
+              id: 1, 
+              tipo: 'añadido' as const, 
+              numero_hr: 'Sin datos', 
+              referencia: 'No hay conexión con el servidor', 
+              procedencia: '', 
+              fecha: new Date().toISOString(), 
+              fecha_actividad: new Date().toISOString(),
+              usuario_nombre: 'Sistema' 
+            }
           ],
           editados: [
-            { id: 2, tipo: 'editado' as const, numero_hr: 'Sin datos', referencia: 'No hay conexión con el servidor', procedencia: '', fecha: new Date().toISOString(), usuario_nombre: 'Sistema' }
+            { 
+              id: 2, 
+              tipo: 'editado' as const, 
+              numero_hr: 'Sin datos', 
+              referencia: 'No hay conexión con el servidor', 
+              procedencia: '', 
+              fecha: new Date().toISOString(), 
+              fecha_actividad: new Date().toISOString(),
+              usuario_nombre: 'Sistema' 
+            }
           ],
           enviados: [
-            { id: 3, tipo: 'enviado' as const, numero_hr: 'Sin datos', destinatario: 'No hay conexión con el servidor', fecha: new Date().toISOString(), usuario_nombre: 'Sistema' }
+            { 
+              id: 3, 
+              tipo: 'enviado' as const, 
+              numero_hr: 'Sin datos', 
+              destinatario: 'No hay conexión con el servidor', 
+              fecha: new Date().toISOString(), 
+              fecha_actividad: new Date().toISOString(),
+              usuario_nombre: 'Sistema' 
+            }
           ]
         };
         setHistorialData(mockData);
