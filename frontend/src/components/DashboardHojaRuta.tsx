@@ -8,7 +8,7 @@ import VolverIcon from '../assets/Flecha down';
 import PdfIcon from '../assets/pdf';
 import HojaRutaPreview from './HojaRutaPreview';
 // import duplicado eliminado
-import dosLineas from '../assets/dosLineas';
+import DosLineas from '../assets/dosLineas';
 import XLogo from '../assets/X';
 
 const DashboardHojaRuta: React.FC = () => {
@@ -87,7 +87,7 @@ const DashboardHojaRuta: React.FC = () => {
             aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
           >
             <span className="block">
-              {menuOpen ? <XLogo width={28} height={28} fill="var(--color-punzo-600)" /> : <dosLineas width={28} height={28} fill="var(--color-punzo-600)" />}
+              {menuOpen ? <XLogo width={28} height={28} fill="var(--color-punzo-600)" /> : <DosLineas width={28} height={28} fill="var(--color-punzo-600)" />}
             </span>
           </button>
           <div className={`mt-20 flex-1 flex flex-col items-center ${menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'} transition-opacity duration-300`}>
