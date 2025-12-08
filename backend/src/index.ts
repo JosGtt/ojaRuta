@@ -14,8 +14,17 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3001');
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://super-bejinho-ba0363.netlify.app',
+  process.env.CORS_ORIGIN
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173'
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
