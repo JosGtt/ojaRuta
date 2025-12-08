@@ -5,7 +5,7 @@ import NotificationIcon from '../assets/notification';
 import LupayIcon from '../assets/lupay';
 import CerrarLogo from '../assets/cerrar';
 import NuevaHojaRuta from './NuevaHojaRuta';
-import RegistrosPage from '../pages/RegistrosPageClean';
+import RegistrosPage from '../pages/RegistrosPage';
 import HistorialPage from '../pages/HistorialPage';
 import NotificacionesPage from '../pages/NotificacionesPage';
 import ModernDashboard from './ModernDashboard';

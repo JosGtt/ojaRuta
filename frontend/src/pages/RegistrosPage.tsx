@@ -20,11 +20,11 @@ interface HojaRuta {
   responsable_actual?: string;
 }
 
-interface RegistrosPageCleanProps {
-  onHojaSelected?: (hoja: HojaRuta) => void;
+interface RegistrosPageProps {
+  onHojaSelected?: (hoja: any) => void;
 }
 
-const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected }) => {
+const RegistrosPage: React.FC<RegistrosPageProps> = ({ onHojaSelected }) => {
   const { token } = useAuth();
   const { query } = useSearch();
   const [hojas, setHojas] = useState<HojaRuta[]>([]);
@@ -134,4 +134,4 @@ const RegistrosPageClean: React.FC<RegistrosPageCleanProps> = ({ onHojaSelected 
   );
 };
 
-export default RegistrosPageClean;
+export default RegistrosPage;
