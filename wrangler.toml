@@ -2,4 +2,9 @@ name = "ojaruta"
 compatibility_date = "2023-12-01"
 
 [site]
-bucket = "frontend/dist"
+bucket = "./frontend/dist"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
