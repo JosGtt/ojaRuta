@@ -11,7 +11,7 @@ import historialRoutes from './routes/historial';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001');
 
 // Middleware
 app.use(cors({
@@ -31,7 +31,17 @@ app.use('/api/historial', historialRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 
     message: 'Sistema de Hoja de Ruta API funcionando correctamente',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    database: process.env.DB_HOST ? 'Connected' : 'Not configured'
+  });
+});
+
+// Ruta raíz
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'API SEDEGES Hoja de Ruta', 
+    version: '1.0.0',
+    status: 'Running'
   });
 });
 
@@ -41,8 +51,8 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`📊 Base de datos: ${process.env.DB_NAME}`);
-  console.log(`🌐 CORS habilitado para: ${process.env.CORS_ORIGIN}`);
+  console.log(`📊 Base de datos: ${process.env.DB_HOST || 'No configurada'}`);
+  console.log(`🌐 CORS habilitado para: ${process.env.CORS_ORIGIN || 'localhost'}`);
 });
