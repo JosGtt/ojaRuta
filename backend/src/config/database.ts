@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Usar DATABASE_URL si está disponible (recomendado para Supabase)
-// De lo contrario, usar variables individuales
+// Configuración para Supabase
+// Usar DATABASE_URL si está disponible, sino usar variables individuales
 const pool = process.env.DATABASE_URL 
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
@@ -18,9 +18,11 @@ const pool = process.env.DATABASE_URL
       database: process.env.DB_NAME,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      ssl: process.env.DB_PORT === '6543' ? { rejectUnauthorized: false } : false,
+      // Configuración adicional para el pooler de Supabase
+      ...(process.env.DB_PORT === '6543' && {
+        options: '-c search_path=public'
+      })
     });
 
 // Probar conexión
