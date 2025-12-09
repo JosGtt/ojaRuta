@@ -10,7 +10,7 @@ COPY backend/package*.json ./
 RUN npm install
 
 # Copiar código fuente del backend
-COPY backend/ ./
+COPY backend ./
 
 # Compilar TypeScript
 RUN npm run build
