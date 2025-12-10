@@ -1,9 +1,10 @@
 export interface Usuario {
   id: number;
-  usuario: string;
-  password: string;
+  username: string;
+  password_hash: string;
   nombre_completo: string;
   email?: string;
+  cargo?: string;
   rol: string;
   activo: boolean;
   created_at: Date;
@@ -38,7 +39,7 @@ export interface LoginResponse {
   token: string;
   usuario: {
     id: number;
-    usuario: string;
+    username: string;
     nombre_completo: string;
     rol: string;
   };

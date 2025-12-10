@@ -54,7 +54,7 @@ export const login = async (req: Request, res: Response) => {
       token,
       usuario: {
         id: user.id,
-        usuario: user.usuario,
+        username: user.username,
         nombre_completo: user.nombre_completo,
         rol: user.rol
       }
@@ -76,7 +76,7 @@ export const verificarToken = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
     
     const result = await pool.query(
-      'SELECT id, usuario, nombre_completo, rol FROM usuarios WHERE id = $1 AND activo = true',
+      'SELECT id, username, nombre_completo, rol FROM usuarios WHERE id = $1 AND activo = true',
       [userId]
     );
 
