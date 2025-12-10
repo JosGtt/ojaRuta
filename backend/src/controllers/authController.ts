@@ -17,7 +17,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Buscar usuario en la base de datos
     const result = await pool.query(
-      'SELECT * FROM usuarios WHERE usuario = $1 AND activo = true',
+      'SELECT * FROM usuarios WHERE username = $1 AND activo = true',
       [usuario]
     );
 
@@ -30,7 +30,7 @@ export const login = async (req: Request, res: Response) => {
     const user = result.rows[0];
 
     // Verificar contraseña
-    const isValidPassword = await bcryptjs.compare(password, user.password);
+    const isValidPassword = await bcryptjs.compare(password, user.password_hash);
     
     if (!isValidPassword) {
       return res.status(401).json({
@@ -44,7 +44,7 @@ export const login = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { 
         userId: user.id, 
-        usuario: user.usuario,
+        usuario: user.username,
         rol: user.rol 
       },
       jwtSecret
