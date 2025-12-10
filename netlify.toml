@@ -10,4 +10,4 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  VITE_API_URL = "https://ojaruta.onrender.com"
+  VITE_API_URL = "https://ojaruta-production.up.railway.app"
