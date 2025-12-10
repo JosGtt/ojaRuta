@@ -8,7 +8,19 @@ import notificacionesRoutes from './routes/notificaciones';
 import enviarRoutes from './routes/enviar';
 import historialRoutes from './routes/historial';
 
-dotenv.config();
+// Cargar variables de entorno
+if (process.env.NODE_ENV === 'production') {
+  dotenv.config({ path: '.env.production' });
+} else {
+  dotenv.config();
+}
+
+console.log('🔧 Environment variables:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DB_HOST:', process.env.DB_HOST);
+console.log('DB_NAME:', process.env.DB_NAME);
+console.log('DB_USER:', process.env.DB_USER);
+console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001');
