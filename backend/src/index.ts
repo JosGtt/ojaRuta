@@ -28,7 +28,7 @@ const PORT = parseInt(process.env.PORT || '3001');
 // Middleware
 const allowedOrigins: string[] = [
   'http://localhost:5173',
-  'https://super-beijinho-ba0363.netlify.app',
+  'https://ojaruta-production-8e90.up.railway.app',
   process.env.CORS_ORIGIN || ''
 ].filter(origin => origin !== '');
 
