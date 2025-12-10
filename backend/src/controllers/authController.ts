@@ -8,12 +8,17 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { usuario, password }: LoginRequest = req.body;
 
+    console.log('🔐 Intento de login:', { usuario, passwordLength: password?.length });
+
     // Validar datos
     if (!usuario || !password) {
+      console.log('❌ Datos faltantes');
       return res.status(400).json({
         error: 'Usuario y contraseña son requeridos'
       });
     }
+
+    console.log('🔍 Buscando usuario en BD:', usuario);
 
     // Buscar usuario en la base de datos
     const result = await pool.query(
@@ -21,18 +26,25 @@ export const login = async (req: Request, res: Response) => {
       [usuario]
     );
 
+    console.log('📊 Resultado query:', { rowsFound: result.rows.length });
+
     if (result.rows.length === 0) {
+      console.log('❌ Usuario no encontrado:', usuario);
       return res.status(401).json({
         error: 'Credenciales inválidas'
       });
     }
 
     const user = result.rows[0];
+    console.log('👤 Usuario encontrado:', { id: user.id, username: user.username, rol: user.rol });
 
     // Verificar contraseña
     const isValidPassword = await bcryptjs.compare(password, user.password_hash);
     
+    console.log('🔑 Verificación de contraseña:', { isValid: isValidPassword });
+
     if (!isValidPassword) {
+      console.log('❌ Contraseña incorrecta para:', usuario);
       return res.status(401).json({
         error: 'Credenciales inválidas'
       });
