@@ -29,11 +29,24 @@ const PORT = parseInt(process.env.PORT || '3001');
 const allowedOrigins: string[] = [
   'http://localhost:5173',
   'https://ojaruta-production-8e90.up.railway.app',
+  'https://ojaruta-production.up.railway.app',
   process.env.CORS_ORIGIN || ''
 ].filter(origin => origin !== '');
 
+console.log('🌐 CORS allowed origins:', allowedOrigins);
+
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Permitir requests sin origin (como mobile apps o curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.endsWith('.railway.app')) {
+      callback(null, true);
+    } else {
+      console.warn('❌ Origin blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
