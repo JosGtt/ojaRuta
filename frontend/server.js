@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 const distPath = path.join(__dirname, 'dist');
 const indexPath = path.join(distPath, 'index.html');
 
@@ -25,71 +25,27 @@ if (!existsSync(indexPath)) {
 console.log('✅ Directorio dist encontrado:', distPath);
 console.log('✅ index.html encontrado:', indexPath);
 
-// Configuración de seguridad básica
+// Configuración básica
 app.disable('x-powered-by');
 
-// Trust proxy para Railway
-app.set('trust proxy', 1);
-
-// Middleware de logging
+// Middleware de logging simplificado
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
 
-// Health check para Railway
-app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    port: PORT
-  });
-});
-
-// Servir archivos estáticos con configuración apropiada
+// Servir archivos estáticos
 app.use(express.static(distPath, {
-  maxAge: '1d',
-  etag: true,
-  lastModified: true,
-  index: false // Desactivar index automático
+  maxAge: '1h',
+  etag: true
 }));
 
-// SPA fallback - todas las rutas devuelven index.html
+// SPA fallback
 app.get('*', (req, res) => {
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error('Error al servir index.html:', err);
-      res.status(500).send('Error al cargar la aplicación');
-    }
-  });
+  res.sendFile(indexPath);
 });
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-  console.error('Error del servidor:', err);
-  res.status(500).send('Error interno del servidor');
-});
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Servidor frontend corriendo en puerto ${PORT}`);
-  console.log(`🌐 Sirviendo desde: ${distPath}`);
-  console.log(`📍 URL: http://0.0.0.0:${PORT}`);
-  console.log(`💚 Health check disponible en: http://0.0.0.0:${PORT}/health`);
-});
-
-// Manejo de señales para shutdown graceful
-process.on('SIGTERM', () => {
-  console.log('SIGTERM recibido, cerrando servidor...');
-  server.close(() => {
-    console.log('Servidor cerrado');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', () => {
-  console.log('SIGINT recibido, cerrando servidor...');
-  server.close(() => {
-    console.log('Servidor cerrado');
-    process.exit(0);
-  });
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Servidor corriendo en puerto ${PORT}`);
+  console.log(`🌐 URL: http://0.0.0.0:${PORT}`);
 });
