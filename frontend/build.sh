@@ -26,4 +26,11 @@ npm install
 echo "🏗️ Compilando aplicación..."
 npm run build
 
+# Copiar _redirects al directorio dist
+echo "📋 Copiando _redirects..."
+if [ -f "public/_redirects" ]; then
+    cp public/_redirects dist/_redirects
+    echo "✅ _redirects copiado a dist/"
+fi
+
 echo "🎉 Build completado exitosamente!"
